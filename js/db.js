@@ -237,7 +237,7 @@ const DB = {
 
   async getPublications(job_offer_id) {
     try {
-      let q = this._client.from('publications').select('*').order('created_at', { ascending: false });
+      let q = this._client.from('job_offers_publications').select('*').order('created_at', { ascending: false });
       if (job_offer_id) q = q.eq('job_offer_id', job_offer_id);
       return (await this._exec(q)) || [];
     } catch (e) {
@@ -247,7 +247,7 @@ const DB = {
 
   async createPublication(data) {
     try {
-      return await this._exec(this._client.from('publications').insert(data).select().single());
+      return await this._exec(this._client.from('job_offers_publications').insert(data).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
@@ -255,7 +255,7 @@ const DB = {
 
   async updatePublication(id, data) {
     try {
-      return await this._exec(this._client.from('publications').update(data).eq('id', id).select().single());
+      return await this._exec(this._client.from('job_offers_publications').update(data).eq('id', id).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
@@ -286,7 +286,7 @@ const DB = {
 
   async getOfferLetters({ application_id } = {}) {
     try {
-      let q = this._client.from('offer_letters')
+      let q = this._client.from('job_offer_letters')
         .select('*, applications(candidates(full_name, email), job_offers(title, department))')
         .order('created_at', { ascending: false });
       if (application_id) q = q.eq('application_id', application_id);
@@ -298,7 +298,7 @@ const DB = {
 
   async createOfferLetter(data) {
     try {
-      return await this._exec(this._client.from('offer_letters').insert(data).select().single());
+      return await this._exec(this._client.from('job_offer_letters').insert(data).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
@@ -306,7 +306,7 @@ const DB = {
 
   async updateOfferLetter(id, data) {
     try {
-      return await this._exec(this._client.from('offer_letters').update(data).eq('id', id).select().single());
+      return await this._exec(this._client.from('job_offer_letters').update(data).eq('id', id).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
@@ -314,7 +314,7 @@ const DB = {
 
   async getOnboardings({ job_offer_id, status } = {}) {
     try {
-      let q = this._client.from('onboardings')
+      let q = this._client.from('onboarding_checklist')
         .select('*, applications(candidates(full_name, email), job_offers(title))')
         .order('created_at', { ascending: false });
       if (job_offer_id) q = q.eq('job_offer_id', job_offer_id);
@@ -327,7 +327,7 @@ const DB = {
 
   async createOnboarding(data) {
     try {
-      return await this._exec(this._client.from('onboardings').insert(data).select().single());
+      return await this._exec(this._client.from('onboarding_checklist').insert(data).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
@@ -335,7 +335,7 @@ const DB = {
 
   async updateOnboarding(id, data) {
     try {
-      return await this._exec(this._client.from('onboardings').update(data).eq('id', id).select().single());
+      return await this._exec(this._client.from('onboarding_checklist').update(data).eq('id', id).select().single());
     } catch (e) {
       throw new Error(getErrorMessage(e));
     }
