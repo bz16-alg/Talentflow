@@ -4,7 +4,7 @@ const CONFIG = {
   SUPABASE_URL: 'https://aaytjrtkrdmqairnrevi.supabase.co', // à remplacer
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFheXRqcnRrcmRtcWFpcm5yZXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTEyMDAsImV4cCI6MjEwMTM2NzIwMH0.reMFKn5gSj0Ki_JewXBLOYyetOZZrOZdl2CPs66htQs', // à remplacer
   DEFAULT_LANG: 'fr',
-  EDGE_FUNCTION_BASE: 'https://VOTRE-PROJET.supabase.co/functions/v1', // à remplacer
+  EDGE_FUNCTION_BASE: 'https://aaytjrtkrdmqairnrevi.supabase.co/functions/v1', // à remplacer
   EDGE_FUNCTIONS: { aiScreening: 'ai-screening', sendEmail: 'send-email', generatePdf: 'generate-pdf', candidateResponse: 'candidate-response' },
   PLATFORMS: {
     emploitic: { name: 'EmploiTic', url: 'https://www.emploitic.com', color: '#2563eb' },
