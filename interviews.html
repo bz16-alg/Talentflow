@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow — Entretiens</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+</head>
+<body data-page="interviews">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><i class="fa-solid fa-bolt"></i> TalentFlow</div>
+    <nav class="sidebar-nav">
+      <a href="recruiter-dashboard.html" class="sidebar-link" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+      <a href="offers.html" class="sidebar-link" data-page="offers"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+      <a href="candidates.html" class="sidebar-link" data-page="candidates"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+      <a href="ai-screening.html" class="sidebar-link" data-page="aiScreening"><i class="fa-solid fa-robot"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+      <a href="interviews.html" class="sidebar-link" data-page="interviews"><i class="fa-solid fa-calendar-check"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+      <a href="final-decision.html" class="sidebar-link" data-page="decisions"><i class="fa-solid fa-scale-balanced"></i><span data-i18n="nav.decisions">Décisions</span></a>
+      <a href="offer-letters.html" class="sidebar-link" data-page="offerLetters"><i class="fa-solid fa-file-contract"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+      <a href="onboarding.html" class="sidebar-link" data-page="onboarding"><i class="fa-solid fa-user-plus"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="avatar" data-avatar>?</span>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" data-user-name></div>
+        <div class="sidebar-user-role" data-user-role></div>
+      </div>
+      <button type="button" class="sidebar-logout" data-logout aria-label="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">TalentFlow</div>
+      <div class="topbar-actions">
+        <span class="text-muted" data-topbar-name></span>
+        <select class="select lang-switch" data-lang-switch id="lang-switch" aria-label="Langue"></select>
+      </div>
+    </header>
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="interviews.title">Entretiens</h1>
+          <p class="page-subtitle" data-i18n="interviews.subtitle">Planifiez et suivez vos entretiens</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnSchedule"><i class="fa-solid fa-calendar-plus"></i> <span data-i18n="interviews.schedule">Planifier un entretien</span></button>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="calendar" data-i18n="interviews.calendar">Calendrier</button>
+        <button type="button" class="tab" data-tab="list" data-i18n="interviews.list">Liste</button>
+      </div>
+
+      <div id="pane-calendar">
+        <div class="calendar-box" style="margin-top:16px"><div id="calendar"></div></div>
+      </div>
+
+      <div id="pane-list" class="d-none">
+        <div class="filter-bar" style="margin-top:16px">
+          <div class="form-group">
+            <label class="form-label" for="filterOffer" data-i18n="offer.title">Offres d'emploi</label>
+            <select class="select" id="filterOffer"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="filterStatus" data-i18n="common.status">Statut</label>
+            <select class="select" id="filterStatus"></select>
+          </div>
+        </div>
+        <div id="interviewsTable"></div>
+        <div class="card" style="margin-top:18px">
+          <div class="card-header">
+            <h3 data-i18n="interviews.synthesis">Synthèse des notes</h3>
+            <span class="actions text-muted" data-i18n="interviews.perCandidate">par candidat</span>
+          </div>
+          <div class="card-body"><div id="synthesisTable"></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var state = { interviews: [], applications: [], profiles: [], offers: [], calendar: null };
+
+  function $(id) { return document.getElementById(id); }
+
+  function truncate(s, n) {
+    s = String(s || '');
+    return s.length > n ? s.slice(0, n).trim() + '…' : s;
+  }
+
+  function formModal(opts) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      var modalEl = document.createElement('div');
+      modalEl.className = 'modal';
+      var header = document.createElement('div');
+      header.className = 'modal-header';
+      var title = document.createElement('h3');
+      title.textContent = opts.title || '';
+      var closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'btn btn-icon btn-outline modal-close';
+      closeBtn.setAttribute('aria-label', 'Fermer');
+      closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      header.append(title, closeBtn);
+      var body = document.createElement('div');
+      body.className = 'modal-body';
+      body.innerHTML = opts.bodyHTML || '';
+      var footer = document.createElement('div');
+      footer.className = 'modal-footer';
+      var cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'btn btn-outline';
+      cancelBtn.textContent = t('common.cancel');
+      var confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.className = 'btn btn-primary';
+      confirmBtn.textContent = opts.confirmText || t('common.confirm');
+      var settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey);
+        overlay.remove();
+        resolve(result);
+      }
+      function onKey(e) { if (e.key === 'Escape') finish(false); }
+      closeBtn.addEventListener('click', function () { finish(false); });
+      cancelBtn.addEventListener('click', function () { finish(false); });
+      confirmBtn.addEventListener('click', function () {
+        var form = body.querySelector('form');
+        if (!form) { finish(true); return; }
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        var data = {};
+        new FormData(form).forEach(function (v, k) { data[k] = v; });
+        finish(data);
+      });
+      overlay.addEventListener('mousedown', function (e) { if (e.target === overlay) finish(false); });
+      footer.append(cancelBtn, confirmBtn);
+      modalEl.append(header, body, footer);
+      overlay.appendChild(modalEl);
+      document.body.appendChild(overlay);
+      document.addEventListener('keydown', onKey);
+      confirmBtn.focus();
+    });
+  }
+
+  function interviewTypeOptions() {
+    var types = ['technical', 'HR', 'manager', 'final'];
+    return types.map(function (tp) {
+      return '<option value="' + tp + '">' + Widgets.escapeHTML(t('interviews.type' + tp.charAt(0).toUpperCase() + tp.slice(1))) + '</option>';
+    }).join('');
+  }
+
+  function applicationOptions() {
+    return state.applications
+      .filter(function (a) { return a.status === 'screened' || a.status === 'interview'; })
+      .map(function (a) {
+        var name = (a.candidates && a.candidates.full_name) || '';
+        var job = (a.job_offers && a.job_offers.title) || '';
+        return '<option value="' + a.id + '">' + Widgets.escapeHTML(name + ' — ' + job) + '</option>';
+      }).join('');
+  }
+
+  function interviewerOptions(selected) {
+    return state.profiles.map(function (p) {
+      var roleLabel = p.role === 'manager' ? t('auth.managerRole') : (p.role === 'recruiter' ? t('auth.recruiterRole') : (p.role || ''));
+      var label = p.full_name + (roleLabel ? ' — ' + roleLabel : '');
+      return '<option value="' + p.id + '"' + (selected === p.id ? ' selected' : '') + '>' + Widgets.escapeHTML(label) + '</option>';
+    }).join('');
+  }
+
+  function interviewForm(i) {
+    i = i || {};
+    var isEdit = !!i.id;
+    var cand = (i.applications && i.applications.candidates && i.applications.candidates.full_name) || '';
+    var job = (i.applications && i.applications.job_offers && i.applications.job_offers.title) || '';
+    var type = i.type || 'technical';
+    var showMeet = type === 'technical' || type === 'final';
+    return '<form>' +
+      (isEdit ? '<p class="text-muted mb-16">' + Widgets.escapeHTML(cand + ' — ' + job) + '</p>' : '') +
+      '<div class="form-group"><label class="form-label">' + t('interviews.candidate') + ' <span class="required">*</span></label>' +
+      (isEdit ? '<input type="text" class="input" value="' + Widgets.escapeHTML(cand + ' — ' + job) + '" disabled>' :
+        '<select class="select" name="application_id" required><option value="">' + t('common.select') + '…</option>' + applicationOptions() + '</select>') +
+      '</div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.interviewer') + ' <span class="required">*</span></label>' +
+      '<select class="select" name="interviewer_id" required><option value="">' + t('common.select') + '…</option>' + interviewerOptions(i.interviewer_id) + '</select></div>' +
+      '<div class="form-grid-2">' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.date') + ' <span class="required">*</span></label><input type="date" class="input" name="date" value="' + Widgets.escapeHTML(i.date || '') + '" required></div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.time') + ' <span class="required">*</span></label><input type="time" class="input" name="time" value="' + Widgets.escapeHTML(i.time ? String(i.time).slice(0, 5) : '') + '" required></div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.duration') + ' (' + t('common.minutes') + ')</label><input type="number" class="input" name="duration" value="' + (i.duration || 60) + '" min="1" step="5"></div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.type') + '</label><select class="select" name="type">' + interviewTypeOptions().replace('value="' + type + '"', 'value="' + type + '" selected') + '</select></div>' +
+      '</div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.location') + '</label><input type="text" class="input" name="location" value="' + Widgets.escapeHTML(i.location || '') + '"></div>' +
+      '<div class="form-group' + (showMeet ? '' : ' d-none') + '" data-meet-group><label class="form-label">' + t('interviews.meetLink') + '</label><input type="url" class="input" name="meetLink" value="' + Widgets.escapeHTML(i.meet_link || '') + '" placeholder="https://meet.google.com/…"></div>' +
+      '<div class="form-group"><label class="form-label">' + t('interviews.checklist') + '</label><textarea class="input" name="checklist" rows="3">' + Widgets.escapeHTML(Array.isArray(i.checklist) ? i.checklist.join('\n') : (i.checklist || '')) + '</textarea></div>' +
+      '</form>';
+  }
+
+  function typeCell(tp) {
+    var map = {
+      technical: ['fa-code', 'badge-blue', 'interviews.typeTechnical'],
+      HR: ['fa-handshake', 'badge-purple', 'interviews.typeHR'],
+      manager: ['fa-user-tie', 'badge-orange', 'interviews.typeManager'],
+      final: ['fa-trophy', 'badge-green', 'interviews.typeFinal']
+    };
+    var m = map[tp] || ['fa-circle-question', 'badge-gray', null];
+    var label = m[2] ? t(m[2]) : tp;
+    return '<span class="badge ' + m[1] + '"><i class="fa-solid ' + m[0] + '"></i> ' + Widgets.escapeHTML(label) + '</span>';
+  }
+
+  function actionButtons(i) {
+    var h = '<div class="actions">' +
+      '<button type="button" class="btn btn-sm btn-outline" data-action="edit" data-id="' + i.id + '" title="' + t('interviews.edit') + '"><i class="fa-solid fa-pen"></i></button>';
+    if (i.status === 'scheduled') {
+      h += '<button type="button" class="btn btn-sm btn-success" data-action="complete" data-id="' + i.id + '" title="' + t('interviews.complete') + '"><i class="fa-solid fa-check"></i></button>' +
+        '<button type="button" class="btn btn-sm btn-outline" data-action="cancel" data-id="' + i.id + '" title="' + t('interviews.cancel') + '"><i class="fa-solid fa-ban"></i></button>';
+    }
+    h += '<button type="button" class="btn btn-sm btn-outline" data-action="email" data-id="' + i.id + '" title="' + t('interviews.confirmEmail') + '"><i class="fa-solid fa-envelope"></i></button>' +
+      '<button type="button" class="btn btn-sm btn-outline" data-action="delete" data-id="' + i.id + '" title="' + t('common.delete') + '"><i class="fa-solid fa-trash"></i></button></div>';
+    return h;
+  }
+
+  function candidateName(i) {
+    return (i.applications && i.applications.candidates && i.applications.candidates.full_name) || '—';
+  }
+
+  function jobTitle(i) {
+    return (i.applications && i.applications.job_offers && i.applications.job_offers.title) || '—';
+  }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  async function loadData() {
+    try {
+      var results = await Promise.all([
+        DB.getInterviews({}),
+        DB.getApplications({}),
+        DB.getCompanyProfiles(),
+        DB.getJobOffers({})
+      ]);
+      state.interviews = results[0];
+      state.applications = results[1];
+      state.profiles = results[2];
+      state.offers = results[3];
+      fillFilters();
+      renderStats();
+      renderCalendar();
+      renderList();
+      renderSynthesis();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  function fillFilters() {
+    var offerSel = $('filterOffer');
+    offerSel.innerHTML = '<option value="">' + t('common.allOffers') + '</option>' +
+      state.offers.map(function (o) { return '<option value="' + o.id + '">' + Widgets.escapeHTML(o.title) + '</option>'; }).join('');
+    var statusSel = $('filterStatus');
+    statusSel.innerHTML = '<option value="">' + t('common.allStatuses') + '</option>' +
+      ['scheduled', 'completed', 'cancelled'].map(function (s) {
+        return '<option value="' + s + '">' + Widgets.escapeHTML(t('status.' + s)) + '</option>';
+      }).join('');
+  }
+
+  function renderStats() {
+    var today = todayStr();
+    var scheduled = state.interviews.filter(function (i) { return i.status === 'scheduled'; }).length;
+    var completed = state.interviews.filter(function (i) { return i.status === 'completed'; }).length;
+    var todayCount = state.interviews.filter(function (i) { return i.status === 'scheduled' && i.date === today; }).length;
+    $('statsGrid').innerHTML =
+      Widgets.statCard({ icon: 'fa-calendar-check', color: 'blue', value: scheduled, label: t('interviews.statusScheduled') }) +
+      Widgets.statCard({ icon: 'fa-circle-check', color: 'green', value: completed, label: t('interviews.statusCompleted') }) +
+      Widgets.statCard({ icon: 'fa-clock', color: 'orange', value: todayCount, label: t('common.today') });
+  }
+
+  function renderCalendar() {
+    var events = state.interviews.map(function (i) {
+      return {
+        id: i.id,
+        title: candidateName(i) + ' — ' + jobTitle(i),
+        start: i.date + 'T' + (i.time ? String(i.time).slice(0, 5) : '00:00')
+      };
+    });
+    var el = $('calendar');
+    el.innerHTML = '';
+    state.calendar = Widgets.calendar(el, {
+      events: events,
+      onEventClick: function (ev) {
+        var interview = state.interviews.find(function (i) { return i.id === ev.id; });
+        if (interview) openEditModal(interview);
+      }
+    });
+  }
+
+  function filteredInterviews() {
+    var offerId = $('filterOffer').value;
+    var status = $('filterStatus').value;
+    var appToOffer = {};
+    state.applications.forEach(function (a) { appToOffer[a.id] = a.job_offer_id; });
+    return state.interviews.filter(function (i) {
+      if (offerId && appToOffer[i.application_id] !== offerId) return false;
+      if (status && i.status !== status) return false;
+      return true;
+    });
+  }
+
+  function renderList() {
+    var rows = filteredInterviews().map(function (i) {
+      return {
+        id: i.id,
+        candidate: candidateName(i),
+        job: jobTitle(i),
+        interviewer: (i.profiles && i.profiles.full_name) || '—',
+        date: i.date,
+        time: i.time,
+        duration: i.duration,
+        type: i.type,
+        status: i.status
+      };
+    });
+    Widgets.renderTable('#interviewsTable', {
+      columns: [
+        { label: t('interviews.candidate'), render: function (r) {
+            return '<span style="display:inline-flex;align-items:center;gap:10px">' + Widgets.avatar(r.candidate) + '<span>' + Widgets.escapeHTML(r.candidate) + '</span></span>';
+          } },
+        { label: t('apply.job'), render: function (r) { return Widgets.escapeHTML(r.job); } },
+        { label: t('interviews.interviewer'), render: function (r) {
+            return '<span style="display:inline-flex;align-items:center;gap:8px">' + Widgets.avatar(r.interviewer, 'avatar-sm') + '<span>' + Widgets.escapeHTML(r.interviewer) + '</span></span>';
+          } },
+        { label: t('interviews.date'), render: function (r) {
+            return Widgets.formatDate(r.date) + (r.time ? ' <span class="text-muted">' + Widgets.escapeHTML(String(r.time).slice(0, 5)) + '</span>' : '');
+          } },
+        { label: t('interviews.duration'), render: function (r) { return r.duration ? Widgets.escapeHTML(String(r.duration)) + ' ' + t('common.minutes') : '—'; } },
+        { label: t('interviews.type'), render: function (r) { return typeCell(r.type); } },
+        { label: t('interviews.status'), render: function (r) { return Widgets.badge(r.status); } },
+        { label: t('common.actions'), render: function (r) {
+            var interview = state.interviews.find(function (i) { return i.id === r.id; });
+            return interview ? actionButtons(interview) : '';
+          } }
+      ],
+      rows: rows,
+      emptyText: t('interviews.noInterviews')
+    });
+  }
+
+  function renderSynthesis() {
+    var byCandidate = {};
+    state.interviews.forEach(function (i) {
+      if (i.status !== 'completed' || !i.scores) return;
+      var vals = [];
+      Object.keys(i.scores).forEach(function (k) {
+        var v = Number(i.scores[k]);
+        if (!isNaN(v)) vals.push(v);
+      });
+      if (!vals.length) return;
+      var name = candidateName(i);
+      if (!byCandidate[name]) byCandidate[name] = [];
+      byCandidate[name] = byCandidate[name].concat(vals);
+    });
+    var rows = Object.keys(byCandidate).map(function (name) {
+      var vals = byCandidate[name];
+      var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+      return { name: name, avg: avg };
+    }).sort(function (a, b) { return b.avg - a.avg; });
+    Widgets.renderTable('#synthesisTable', {
+      columns: [
+        { label: t('interviews.candidate'), render: function (r) {
+            return '<span style="display:inline-flex;align-items:center;gap:10px">' + Widgets.avatar(r.name) + '<span>' + Widgets.escapeHTML(r.name) + '</span></span>';
+          } },
+        { label: t('interviews.avgScore'), render: function (r) {
+            return '<span class="badge badge-blue">' + r.avg.toFixed(1) + '/5</span>';
+          } }
+      ],
+      rows: rows,
+      emptyText: t('interviews.noInterviews')
+    });
+  }
+
+  function scoreSelect(name, label, value) {
+    var options = '';
+    for (var n = 1; n <= 5; n++) {
+      options += '<option value="' + n + '"' + (Number(value) === n ? ' selected' : '') + '>' + n + '</option>';
+    }
+    return '<div class="form-group"><label class="form-label">' + label + '</label><select class="select" name="' + name + '" required>' + options + '</select></div>';
+  }
+
+  async function openCreateModal() {
+    var data = await formModal({
+      title: t('interviews.schedule'),
+      confirmText: t('common.save'),
+      bodyHTML: interviewForm()
+    });
+    if (!data) return;
+    try {
+      await DB.createInterview({
+        application_id: data.application_id,
+        interviewer_id: data.interviewer_id,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        type: data.type,
+        status: 'scheduled',
+        feedback: [],
+        scores: {}
+      });
+      Widgets.toast(t('toasts.saved'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function openEditModal(i) {
+    var data = await formModal({
+      title: t('interviews.edit'),
+      confirmText: t('common.save'),
+      bodyHTML: interviewForm(i)
+    });
+    if (!data) return;
+    try {
+      await DB.updateInterview(i.id, {
+        interviewer_id: data.interviewer_id,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        type: data.type
+      });
+      Widgets.toast(t('toasts.saved'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function completeInterview(i) {
+    var cand = candidateName(i) + ' — ' + jobTitle(i);
+    var scores = i.scores || {};
+    var data = await formModal({
+      title: t('interviews.feedback'),
+      confirmText: t('common.save'),
+      bodyHTML: '<form>' +
+        '<p class="text-muted mb-16">' + Widgets.escapeHTML(cand) + '</p>' +
+        scoreSelect('technical', t('interviews.scoreTechnical'), scores.technical) +
+        scoreSelect('communication', t('interviews.scoreCommunication'), scores.communication) +
+        scoreSelect('culture_fit', t('interviews.scoreCulture'), scores.culture_fit) +
+        '<div class="form-group"><label class="form-label">' + t('interviews.comments') + '</label><textarea class="input" name="comments" rows="3"></textarea></div>' +
+        '</form>'
+    });
+    if (!data) return;
+    try {
+      var comment = data.comments || '';
+      await DB.updateInterview(i.id, {
+        status: 'completed',
+        scores: {
+          technical: Number(data.technical),
+          communication: Number(data.communication),
+          culture_fit: Number(data.culture_fit)
+        },
+        feedback: comment ? [comment] : []
+      });
+      Widgets.toast(t('toasts.saved'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function cancelInterview(i) {
+    var ok = await Widgets.confirm(t('interviews.cancelConfirm'), t('interviews.cancel'));
+    if (!ok) return;
+    try {
+      await DB.updateInterview(i.id, { status: 'cancelled' });
+      Widgets.toast(t('toasts.saved'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function deleteInterviewAction(i) {
+    var ok = await Widgets.confirm(t('interviews.deleteConfirm'), t('common.delete'));
+    if (!ok) return;
+    try {
+      await DB.deleteInterview(i.id);
+      Widgets.toast(t('toasts.deleted'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function sendConfirmation(i) {
+    var cand = (i.applications && i.applications.candidates) || {};
+    var job = (i.applications && i.applications.job_offers) || {};
+    if (!cand.email) {
+      Widgets.toast(t('toasts.error'), 'error');
+      return;
+    }
+    var profile = Auth.getProfile();
+    try {
+      var email = AI.emailContent('confirm', {
+        candidate: cand.full_name || '',
+        job: job.title || '',
+        company: (profile && profile.company) || CONFIG.APP_NAME,
+        date: Widgets.formatDate(i.date),
+        time: String(i.time || '').slice(0, 5)
+      });
+      var ok = await Widgets.confirm(
+        t('interviews.confirmEmail') + ' — ' + Widgets.escapeHTML(cand.full_name || '') + '\n\n' + Widgets.escapeHTML(email.subject) + '\n\n' + Widgets.escapeHTML(email.body),
+        t('common.preview')
+      );
+      if (!ok) return;
+      await AI.sendEmail(cand.email, email.subject, email.body);
+      Widgets.toast(t('interviews.emailSent'), 'success');
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  function onTableClick(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var interview = state.interviews.find(function (i) { return i.id === btn.getAttribute('data-id'); });
+    if (!interview) return;
+    var action = btn.getAttribute('data-action');
+    if (action === 'edit') openEditModal(interview);
+    else if (action === 'complete') completeInterview(interview);
+    else if (action === 'cancel') cancelInterview(interview);
+    else if (action === 'delete') deleteInterviewAction(interview);
+    else if (action === 'email') sendConfirmation(interview);
+  }
+
+  function wireTabs() {
+    document.querySelectorAll('[data-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-tab]').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var name = btn.getAttribute('data-tab');
+        $('pane-calendar').classList.toggle('d-none', name !== 'calendar');
+        $('pane-list').classList.toggle('d-none', name !== 'list');
+        if (name === 'calendar') renderCalendar();
+      });
+    });
+  }
+
+  function init() {
+    $('btnSchedule').addEventListener('click', openCreateModal);
+    $('filterOffer').addEventListener('change', renderList);
+    $('filterStatus').addEventListener('change', renderList);
+    $('interviewsTable').addEventListener('click', onTableClick);
+    document.addEventListener('change', function (e) {
+      var el = e.target;
+      if (el && el.name === 'type' && el.closest('.modal-body')) {
+        var group = el.closest('.modal').querySelector('[data-meet-group]');
+        if (group) group.classList.toggle('d-none', el.value !== 'technical' && el.value !== 'final');
+      }
+    });
+    wireTabs();
+    loadData();
+  }
+
+  document.addEventListener('DOMContentLoaded', async function () {
+    try {
+      var profile = await Auth.requireAuth(['recruiter', 'manager']);
+      if (!profile) return;
+      if (window.initSharedLayout) initSharedLayout(profile);
+      init();
+    } catch (e) {
+      if (typeof Widgets !== 'undefined') Widgets.toast(getErrorMessage(e), 'error');
+    }
+  });
+})();
+</script>
+</body>
+</html>

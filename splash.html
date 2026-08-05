@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.splash-spinner {
+  width: 36px;
+  height: 36px;
+  margin-top: 28px;
+  border: 3px solid rgba(255, 255, 255, .3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: splash-spin .8s linear infinite;
+}
+@keyframes splash-spin {
+  to { transform: rotate(360deg); }
+}
+.splash-status {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, .9);
+}
+.splash-footer {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, .7);
+}
+</style>
+</head>
+<body data-page="splash">
+
+<div class="splash-screen">
+  <select class="lang-switch" id="splash-lang" data-lang-switch></select>
+
+  <div class="splash-logo"><i class="fa-solid fa-user-tie"></i></div>
+  <h1 class="splash-name">TalentFlow</h1>
+  <p class="splash-tagline" data-i18n="splash.subtitle"></p>
+
+  <div class="mt-16">
+    <button type="button" class="btn btn-primary btn-lg" id="splash-enter" data-i18n="splash.start"></button>
+  </div>
+
+  <div class="splash-spinner d-none" id="splash-spinner"></div>
+  <div class="splash-status d-none" id="splash-status" data-i18n="splash.loading"></div>
+
+  <footer class="splash-footer">TalentFlow &copy; 2026 &mdash; <span data-i18n="footer.rights"></span></footer>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+window.pageInit = async function () {
+  var langSelect = document.getElementById('splash-lang');
+  if (langSelect) langSelect.setAttribute('aria-label', typeof t === 'function' ? t('lang.label') : 'Langue');
+
+  var spinner = document.getElementById('splash-spinner');
+  var status = document.getElementById('splash-status');
+  var enter = document.getElementById('splash-enter');
+
+  enter.addEventListener('click', function () {
+    window.location.href = 'login.html';
+  });
+
+  setTimeout(async function () {
+    spinner.classList.remove('d-none');
+    status.classList.remove('d-none');
+    try {
+      var auth = await Auth.init();
+      if (auth && auth.user) {
+        var profile = null;
+        try {
+          profile = await Auth.getProfile();
+        } catch (e) {
+          profile = null;
+        }
+        Auth.redirectByRole(profile || { role: 'candidate' });
+        return;
+      }
+    } catch (err) {
+      console.warn('[TalentFlow] splash init', err);
+    }
+    spinner.classList.add('d-none');
+    status.classList.add('d-none');
+  }, 900);
+};
+</script>
+</body>
+</html>
