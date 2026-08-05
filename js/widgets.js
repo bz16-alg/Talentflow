@@ -410,3 +410,10 @@ const Widgets = {
     }
   }
 };
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function () { Widgets.applyTranslations(); });
+} else {
+  Widgets.applyTranslations();
+}
+window.addEventListener('langchange', function () { Widgets.applyTranslations(); });

@@ -124,5 +124,12 @@
     fillLangSwitch();
     wireSidebarToggle();
     wireLogout();
+    if (typeof window.pageInit === 'function') {
+      try {
+        window.pageInit();
+      } catch (err) {
+        console.warn('[TalentFlow] pageInit', err);
+      }
+    }
   });
 })();
