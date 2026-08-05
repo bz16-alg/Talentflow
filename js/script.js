@@ -27,15 +27,20 @@
       const overlay = document.querySelector('.sidebar-overlay');
       const toggles = document.querySelectorAll('[data-sidebar-toggle]');
       if (!sidebar || !toggles.length) return;
-      function open() {
-        sidebar.classList.add('open');
-        if (overlay) overlay.classList.add('open');
-      }
+      const isDesktop = function () { return window.matchMedia('(min-width: 769px)').matches; };
       function close() {
         sidebar.classList.remove('open');
         if (overlay) overlay.classList.remove('open');
       }
-      toggles.forEach(function (btn) { btn.addEventListener('click', open); });
+      function toggle() {
+        if (isDesktop()) {
+          document.body.classList.toggle('sidebar-collapsed');
+        } else {
+          sidebar.classList.toggle('open');
+          if (overlay) overlay.classList.toggle('open');
+        }
+      }
+      toggles.forEach(function (btn) { btn.addEventListener('click', toggle); });
       if (overlay) overlay.addEventListener('click', close);
     } catch (err) {
       console.warn('[TalentFlow] wireSidebarToggle', err);
