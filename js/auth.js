@@ -4,11 +4,29 @@ const Auth = {
   _user: null,
   _profile: null,
 
+  _loadSupabaseFallback() {
+    return new Promise((resolve, reject) => {
+      if (window.supabase && typeof window.supabase.createClient === 'function') return resolve(window.supabase);
+      const cdnUrl = 'https://unpkg.com/@supabase/supabase-js@2';
+      const script = document.createElement('script');
+      script.src = cdnUrl;
+      script.onload = () => {
+        if (window.supabase && typeof window.supabase.createClient === 'function') resolve(window.supabase);
+        else reject(new Error("Impossible de charger la librairie Supabase (CDN indisponible). Vérifiez votre connexion internet."));
+      };
+      script.onerror = () => reject(new Error("Impossible de charger la librairie Supabase (CDN indisponible). Vérifiez votre connexion internet."));
+      document.head.appendChild(script);
+    });
+  },
+
   get supabase() {
-    if (!this._client) {
-      this._client = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      if (!this._client) {
+        this._client = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      }
+      return this._client;
     }
-    return this._client;
+    throw new Error("La librairie Supabase n'est pas chargée. Vérifiez votre connexion internet et rechargez la page (Ctrl+F5).");
   },
 
   async _getProfile(userId) {
@@ -26,6 +44,7 @@ const Auth = {
   },
 
   async init() {
+    await this._loadSupabaseFallback();
     const { data } = await this.supabase.auth.getSession();
     const user = data?.session?.user || null;
     if (!user) return null;
@@ -36,6 +55,7 @@ const Auth = {
   },
 
   async login(email, password) {
+    await this._loadSupabaseFallback();
     const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(this._loginError(error));
     this._user = data.user;
@@ -55,6 +75,7 @@ const Auth = {
   },
 
   async register({ fullName, email, phone, role, company, password }) {
+    await this._loadSupabaseFallback();
     const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
@@ -91,6 +112,7 @@ const Auth = {
   },
 
   async requireAuth(roles = ['recruiter', 'manager']) {
+    await this._loadSupabaseFallback();
     const { data } = await this.supabase.auth.getSession();
     if (!data?.session?.user) {
       location.href = 'login.html';
