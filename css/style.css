@@ -1743,6 +1743,14 @@ hr {
   .sidebar-overlay {
     display: none !important;
   }
+
+  body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+  }
+
+  body.sidebar-collapsed .main {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 1024px) {
