@@ -13,6 +13,7 @@
 <header class="topbar" style="position:static">
   <span class="auth-logo" style="margin:0"><i class="fa-solid fa-briefcase"></i><span>TalentFlow</span></span>
   <div class="topbar-actions">
+    <button type="button" id="btn-logout" class="btn btn-outline btn-sm d-none" data-i18n="nav.logout">Déconnexion</button>
     <select id="lang-switch" class="lang-switch" aria-label="Langue"></select>
   </div>
 </header>
@@ -94,6 +95,18 @@
   const cvName = document.getElementById('cv-name');
   let cvFile = null;
 
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) {
+    try {
+      const sess = await Auth.supabase.auth.getSession();
+      if (sess.data && sess.data.session) logoutBtn.classList.remove('d-none');
+    } catch (e) {}
+    logoutBtn.addEventListener('click', async function () {
+      try { await Auth.logout(); } catch (e) {}
+      location.reload();
+    });
+  }
+
   dropzone.addEventListener('click', function () { cvInput.click(); });
   ['dragover', 'dragenter'].forEach(function (evt) {
     dropzone.addEventListener(evt, function (e) {
@@ -147,49 +160,24 @@
     submitBtn.disabled = true;
     submitBtn.querySelector('i').className = 'fa-solid fa-spinner fa-spin';
     try {
-      let candidate = null;
-      try {
-        candidate = await DB.createCandidate({
-          full_name: fullName,
-          email: email,
-          phone: phone || null,
-          city: city || null,
-          linkedin_url: linkedin || null,
-          cover_letter: cover || null,
-          source: utm || 'email',
-          status: 'new'
-        });
-      } catch (err) {
-        try {
-          const list = await DB.getCandidates({ search: email });
-          candidate = (list || []).find(function (c) {
-            return String(c.email).toLowerCase() === String(email).toLowerCase();
-          }) || null;
-        } catch (e2) {
-          candidate = null;
-        }
-        if (!candidate) throw err;
-      }
-      let existing = false;
-      try {
-        const list = await DB.getCandidates({ search: email });
-        const cand = (list || []).find(function (c) {
-          return String(c.email).toLowerCase() === String(email).toLowerCase();
-        });
-        if (cand && (cand.applications || []).some(function (a) { return String(a.job_offer_id) === String(jobId); })) {
-          existing = true;
-        }
-      } catch (e3) {}
-      if (!existing) {
-        await DB.trackApplication(candidate.id, jobId);
-      }
+      const res = await Auth.supabase.rpc('apply_to_offer', {
+        p_full_name: fullName,
+        p_email: email,
+        p_phone: phone || null,
+        p_city: city || null,
+        p_linkedin_url: linkedin || null,
+        p_cover_letter: cover || null,
+        p_source: utm || 'email',
+        p_job_offer_id: jobId
+      });
+      if (res.error) throw res.error;
+      if (!res.data) throw new Error(t('apply.error'));
       if (cvFile) {
         try {
-          await AI.upsertCv(candidate.id, cvFile);
+          await AI.upsertCv(res.data, cvFile);
         } catch (e4) {}
       }
       showSuccess();
-      if (existing) Widgets.toast(Widgets.escapeHTML(t('apply.existing')), 'warning');
     } catch (err) {
       Widgets.toast(Widgets.escapeHTML(err.message || t('apply.error')), 'error');
     } finally {
