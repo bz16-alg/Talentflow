@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -62,9 +62,9 @@
     <p data-i18n="auth.loginSubtitle"></p>
 
     <ul>
-      <li><i class="fa-solid fa-list-check"></i> Les 7 étapes du recrutement, maîtrisées de bout en bout</li>
-      <li><i class="fa-solid fa-robot"></i> Présélection intelligente des candidats par IA</li>
-      <li><i class="fa-solid fa-globe"></i> Diffusion sur les plateformes algériennes d'emploi</li>
+      <li><i class="fa-solid fa-list-check"></i> Les 7 Ã©tapes du recrutement, maÃ®trisÃ©es de bout en bout</li>
+      <li><i class="fa-solid fa-robot"></i> PrÃ©sÃ©lection intelligente des candidats par IA</li>
+      <li><i class="fa-solid fa-globe"></i> Diffusion sur les plateformes algÃ©riennes d'emploi</li>
     </ul>
   </div>
 
@@ -178,6 +178,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/translations.js"></script>
 <script src="js/auth.js"></script>
@@ -224,7 +225,7 @@ window.pageInit = async function () {
 
   document.getElementById('forgot-link').addEventListener('click', function (e) {
     e.preventDefault();
-    Widgets.toast('La réinitialisation du mot de passe sera bientôt disponible', 'info');
+    Widgets.toast('La rÃ©initialisation du mot de passe sera bientÃ´t disponible', 'info');
   });
 
   document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
