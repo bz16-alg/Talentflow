@@ -1,6 +1,6 @@
 const CONFIG = {
   APP_NAME: 'TalentFlow',
-  APP_URL: 'http://localhost:5500', // à remplacer par l'URL de déploiement
+  APP_URL: 'https://bz16-alg.github.io/Talentflow/', // à remplacer par l'URL de déploiement
   SUPABASE_URL: 'https://aaytjrtkrdmqairnrevi.supabase.co', // à remplacer
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFheXRqcnRrcmRtcWFpcm5yZXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTEyMDAsImV4cCI6MjEwMTM2NzIwMH0.reMFKn5gSj0Ki_JewXBLOYyetOZZrOZdl2CPs66htQs', // à remplacer
   DEFAULT_LANG: 'fr',
