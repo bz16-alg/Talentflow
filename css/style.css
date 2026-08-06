@@ -1630,6 +1630,16 @@ hr {
   right: 20px;
 }
 
+.auth-right .lang-switch {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.auth-right .lang-switch:hover {
+  background: #e2e8f0;
+}
+
 .pdf-viewer {
   display: flex;
   flex-direction: column;
