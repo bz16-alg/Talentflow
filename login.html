@@ -169,23 +169,6 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="reg-role" data-i18n="auth.role"></label>
-            <select class="select" id="reg-role">
-              <option value="recruiter" data-i18n="auth.recruiterRole"></option>
-              <option value="manager" data-i18n="auth.managerRole"></option>
-              <option value="candidate" selected data-i18n="auth.candidateRole"></option>
-            </select>
-          </div>
-
-          <div class="form-group d-none" id="company-group">
-            <label class="form-label" for="reg-company" data-i18n="auth.company"></label>
-            <div class="input-icon">
-              <i class="fa-solid fa-building"></i>
-              <input class="input" id="reg-company" type="text" autocomplete="organization" data-i18n-placeholder="auth.company">
-            </div>
-          </div>
-
           <div class="form-error d-none" id="register-error"></div>
 
           <div class="badge-green d-none" id="register-success" style="padding:12px 14px;border-radius:8px;font-size:14px">
@@ -268,11 +251,7 @@ window.pageInit = async function () {
     });
   });
 
-  var roleSelect = document.getElementById('reg-role');
-  var companyGroup = document.getElementById('company-group');
-  roleSelect.addEventListener('change', function () {
-    companyGroup.classList.toggle('d-none', roleSelect.value === 'candidate');
-  });
+  var ROLE_DEFAULT = 'candidate';
 
   function setError(el, message) {
     el.textContent = message || '';
@@ -326,13 +305,11 @@ window.pageInit = async function () {
       email: document.getElementById('reg-email'),
       phone: document.getElementById('reg-phone'),
       password: document.getElementById('reg-password'),
-      passwordConfirm: document.getElementById('reg-passwordConfirm'),
-      company: document.getElementById('reg-company')
+      passwordConfirm: document.getElementById('reg-passwordConfirm')
     };
     var errEl = document.getElementById('register-error');
     var successBox = document.getElementById('register-success');
     var btn = document.getElementById('register-submit');
-    var role = roleSelect.value;
 
     Object.values(inputs).forEach(function (el) { el.classList.remove('input-error'); });
     setError(errEl, '');
@@ -344,15 +321,13 @@ window.pageInit = async function () {
       phone: inputs.phone.value.trim(),
       password: inputs.password.value,
       passwordConfirm: inputs.passwordConfirm.value,
-      company: inputs.company.value.trim(),
-      role: role
+      role: ROLE_DEFAULT
     };
 
     var missing = [];
     ['fullName', 'email', 'phone', 'password', 'passwordConfirm'].forEach(function (key) {
       if (!values[key]) missing.push(key);
     });
-    if (role !== 'candidate' && !values.company) missing.push('company');
 
     if (missing.length) {
       missing.forEach(function (key) { inputs[key].classList.add('input-error'); });
@@ -384,7 +359,6 @@ window.pageInit = async function () {
         email: values.email,
         phone: values.phone,
         role: values.role,
-        company: values.company,
         password: values.password
       });
       var session = await Auth.supabase.auth.getSession();
