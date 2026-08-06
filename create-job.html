@@ -69,8 +69,8 @@
                   <label class="form-label" for="offerContract" data-i18n="offer.contractType">Type de contrat</label>
                   <select class="select" id="offerContract">
                     <option value="">&mdash;</option>
-                    <option value="cdi" data-i18n="offer.contractCDI">CDI</option>
-                    <option value="cdd" data-i18n="offer.contractCDD">CDD</option>
+                    <option value="CDI" data-i18n="offer.contractCDI">CDI</option>
+                    <option value="CDD" data-i18n="offer.contractCDD">CDD</option>
                     <option value="stage" data-i18n="offer.contractStage">Stage</option>
                     <option value="freelance" data-i18n="offer.contractFreelance">Freelance</option>
                   </select>
@@ -278,7 +278,7 @@
           state.offer = await DB.getJobOffer(state.id);
           renderHeaderActions(state.offer);
         } catch (err) {
-          Widgets.toast(t('toasts.error'), 'error');
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
         }
       });
 
@@ -290,7 +290,7 @@
           state.offer = await DB.getJobOffer(state.id);
           renderHeaderActions(state.offer);
         } catch (err) {
-          Widgets.toast(t('toasts.error'), 'error');
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
         }
       });
 
@@ -305,7 +305,7 @@
           await DB.deleteJobOffer(state.id);
           window.location.href = 'recruiter-dashboard.html';
         } catch (err) {
-          Widgets.toast(t('toasts.error'), 'error');
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
         }
       });
     }
@@ -351,7 +351,7 @@
             navigator.clipboard.writeText(btn.getAttribute('data-copy-link')).then(function () {
               Widgets.toast(t('toasts.copied'), 'success');
             }).catch(function () {
-              Widgets.toast(t('toasts.error'), 'error');
+              Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
             });
           });
         });
@@ -413,7 +413,7 @@
           window.location.replace('create-job.html?id=' + encodeURIComponent(created.id));
         }
       } catch (err) {
-        Widgets.toast(t('toasts.error'), 'error');
+        Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
       }
     }
 
@@ -461,7 +461,7 @@
         try {
           await doPublish();
         } catch (err) {
-          Widgets.toast(t('toasts.error'), 'error');
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
         }
       });
     }
