@@ -1525,9 +1525,10 @@ hr {
   width: 44px;
   height: 44px;
   min-width: 44px;
-  background: var(--primary);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, .28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1543,8 +1544,8 @@ hr {
 .signin-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 16px;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, .04), 0 16px 44px rgba(15, 23, 42, .10);
   padding: 36px;
 }
 
@@ -1556,6 +1557,73 @@ hr {
 
 .signin-card .page-subtitle {
   margin-bottom: 24px;
+}
+
+.signin-card .tabs {
+  border-bottom: none;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 2px;
+}
+
+.signin-card .tab {
+  flex: 1;
+  padding: 9px 12px;
+  border-bottom: none;
+  border-radius: 8px;
+  text-align: center;
+  color: var(--muted);
+  transition: color .15s, background .15s, box-shadow .15s;
+}
+
+.signin-card .tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, .6);
+}
+
+.signin-card .tab.active {
+  color: var(--primary);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.input-icon,
+.password-wrap {
+  position: relative;
+}
+
+.input-icon > i,
+.password-wrap > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-icon .input {
+  padding-left: 38px;
+}
+
+.password-wrap .input {
+  padding-left: 38px;
+}
+
+.signin-card .btn-primary {
+  box-shadow: 0 4px 12px rgba(37, 99, 235, .25);
+  transition: background .15s, box-shadow .15s, transform .05s;
+}
+
+.signin-card .btn-primary:hover {
+  box-shadow: 0 6px 16px rgba(37, 99, 235, .32);
+}
+
+.signin-card .btn-primary:active {
+  box-shadow: 0 2px 8px rgba(37, 99, 235, .2);
 }
 
 .splash-screen {
