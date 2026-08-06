@@ -40,8 +40,18 @@
           if (overlay) overlay.classList.toggle('open');
         }
       }
+      function onResize() {
+        if (isDesktop()) {
+          sidebar.classList.remove('open');
+          if (overlay) overlay.classList.remove('open');
+        }
+      }
       toggles.forEach(function (btn) { btn.addEventListener('click', toggle); });
       if (overlay) overlay.addEventListener('click', close);
+      sidebar.querySelectorAll('.sidebar-link').forEach(function (link) {
+        link.addEventListener('click', close);
+      });
+      window.addEventListener('resize', onResize);
     } catch (err) {
       console.warn('[TalentFlow] wireSidebarToggle', err);
     }
@@ -51,14 +61,18 @@
     try {
       if (!profile || typeof profile !== 'object') return;
       const name = profile.full_name || profile.email || '';
-      const roleKey = profile.role === 'manager' ? 'auth.managerRole' : profile.role === 'candidate' ? 'auth.candidateRole' : 'auth.recruiterRole';
+      const roleKey = profile.role === 'manager' ? 'auth.managerRole' : profile.role === 'candidate' ? 'auth.candidateRole' : profile.role === 'admin' ? 'auth.adminRole' : 'auth.recruiterRole';
       const nameEl = document.querySelector('[data-user-name]');
       const topbarEl = document.querySelector('[data-topbar-name]');
       const roleEl = document.querySelector('[data-user-role]');
       const avatarEl = document.querySelector('[data-avatar]');
+      document.body.dataset.role = profile.role || '';
       if (nameEl) nameEl.textContent = name;
-      if (topbarEl) topbarEl.textContent = name;
       if (roleEl) roleEl.textContent = typeof t === 'function' ? t(roleKey) : roleKey;
+      if (topbarEl) {
+        const pageTitleEl = document.querySelector('.page-title');
+        topbarEl.textContent = pageTitleEl && pageTitleEl.textContent ? pageTitleEl.textContent.trim() : topbarEl.textContent;
+      }
       if (avatarEl) {
         const initials = String(name).split(/\s+/).filter(Boolean).map(function (part) { return part.charAt(0); }).join('').slice(0, 2).toUpperCase();
         avatarEl.textContent = initials || '?';

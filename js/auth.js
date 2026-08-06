@@ -74,13 +74,13 @@ const Auth = {
     return error?.message || 'Erreur de connexion';
   },
 
-  async register({ fullName, email, phone, role, company, password }) {
+  async register({ fullName, email, phone, role = 'candidate', password }) {
     await this._loadSupabaseFallback();
     const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName, phone, role, company },
+        data: { full_name: fullName, phone, role },
       },
     });
     if (error) throw new Error(error.message || "Erreur lors de l'inscription.");
@@ -129,6 +129,9 @@ const Auth = {
       return null;
     }
     this._profile = profile;
+    if (roles && roles.indexOf('admin') === -1) {
+      roles = roles.concat(['admin']);
+    }
     if (!roles.includes(profile.role)) {
       Auth.redirectByRole(profile);
     }
@@ -137,7 +140,9 @@ const Auth = {
 
   redirectByRole(profile) {
     const role = profile?.role;
-    if (role === 'recruiter' || role === 'manager') {
+    if (role === 'admin') {
+      location.href = 'admin-users.html';
+    } else if (role === 'recruiter' || role === 'manager') {
       location.href = 'recruiter-dashboard.html';
     } else {
       location.href = 'apply.html';
