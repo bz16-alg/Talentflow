@@ -1065,6 +1065,10 @@ updateKeywords();
 initFramebuffers();
 multipleSplats(parseInt(Math.random() * 20) + 5);
 
+setInterval(() => {
+    splatStack.push(parseInt(Math.random() * 3) + 2);
+}, 3500);
+
 let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
 update();
