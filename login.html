@@ -90,12 +90,16 @@
         <form id="login-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="login-email" data-i18n="auth.email"></label>
-            <input class="input" id="login-email" type="email" autocomplete="email" data-i18n-placeholder="auth.email">
+            <div class="input-icon">
+              <i class="fa-solid fa-envelope"></i>
+              <input class="input" id="login-email" type="email" autocomplete="email" data-i18n-placeholder="auth.email">
+            </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="login-password" data-i18n="auth.password"></label>
             <div class="password-wrap">
+              <i class="fa-solid fa-lock"></i>
               <input class="input" id="login-password" type="password" autocomplete="current-password" data-i18n-placeholder="auth.password">
               <button type="button" class="password-toggle" data-toggle-password="login-password" aria-label="Afficher le mot de passe">
                 <i class="fa-solid fa-eye"></i>
@@ -121,22 +125,32 @@
         <form id="register-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="reg-fullName" data-i18n="auth.fullName"></label>
-            <input class="input" id="reg-fullName" type="text" autocomplete="name" data-i18n-placeholder="auth.fullName">
+            <div class="input-icon">
+              <i class="fa-solid fa-user"></i>
+              <input class="input" id="reg-fullName" type="text" autocomplete="name" data-i18n-placeholder="auth.fullName">
+            </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="reg-email" data-i18n="auth.email"></label>
-            <input class="input" id="reg-email" type="email" autocomplete="email" data-i18n-placeholder="auth.email">
+            <div class="input-icon">
+              <i class="fa-solid fa-envelope"></i>
+              <input class="input" id="reg-email" type="email" autocomplete="email" data-i18n-placeholder="auth.email">
+            </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="reg-phone" data-i18n="auth.phone"></label>
-            <input class="input" id="reg-phone" type="tel" autocomplete="tel" data-i18n-placeholder="auth.phone">
+            <div class="input-icon">
+              <i class="fa-solid fa-phone"></i>
+              <input class="input" id="reg-phone" type="tel" autocomplete="tel" data-i18n-placeholder="auth.phone">
+            </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="reg-password" data-i18n="auth.password"></label>
             <div class="password-wrap">
+              <i class="fa-solid fa-lock"></i>
               <input class="input" id="reg-password" type="password" autocomplete="new-password" data-i18n-placeholder="auth.password">
               <button type="button" class="password-toggle" data-toggle-password="reg-password" aria-label="Afficher le mot de passe">
                 <i class="fa-solid fa-eye"></i>
@@ -146,7 +160,13 @@
 
           <div class="form-group">
             <label class="form-label" for="reg-passwordConfirm" data-i18n="auth.passwordConfirm"></label>
-            <input class="input" id="reg-passwordConfirm" type="password" autocomplete="new-password" data-i18n-placeholder="auth.passwordConfirm">
+            <div class="password-wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input class="input" id="reg-passwordConfirm" type="password" autocomplete="new-password" data-i18n-placeholder="auth.passwordConfirm">
+              <button type="button" class="password-toggle" data-toggle-password="reg-passwordConfirm" aria-label="Afficher le mot de passe">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -160,7 +180,10 @@
 
           <div class="form-group d-none" id="company-group">
             <label class="form-label" for="reg-company" data-i18n="auth.company"></label>
-            <input class="input" id="reg-company" type="text" autocomplete="organization" data-i18n-placeholder="auth.company">
+            <div class="input-icon">
+              <i class="fa-solid fa-building"></i>
+              <input class="input" id="reg-company" type="text" autocomplete="organization" data-i18n-placeholder="auth.company">
+            </div>
           </div>
 
           <div class="form-error d-none" id="register-error"></div>
