@@ -196,7 +196,40 @@
 <script src="js/ai.js"></script>
 <script src="js/widgets.js"></script>
 <script src="js/script.js"></script>
-<script src="js/liquid-ink.js"></script>
+<script>
+// Charge l'animation Liquid Ink uniquement quand le contexte WebGL est
+// disponible (il peut échouer de façon transitoire lors d'actualisations
+// rapides) ; réessaie jusqu'à ~8 fois avant d'abandonner silencieusement.
+(function () {
+  'use strict';
+  var MAX_ATTEMPTS = 8;
+  var RETRY_MS = 400;
+  function acquire(canvas) {
+    try {
+      return canvas.getContext('webgl2') ||
+             canvas.getContext('webgl') ||
+             canvas.getContext('experimental-webgl');
+    } catch (e) {
+      return null;
+    }
+  }
+  function boot(attempt) {
+    var canvas = document.getElementById('liquid-ink-canvas');
+    if (!canvas) return;
+    if (acquire(canvas)) {
+      var s = document.createElement('script');
+      s.src = 'js/liquid-ink.js?v=20260807';
+      s.onerror = function () {
+        if (attempt < MAX_ATTEMPTS) setTimeout(function () { boot(attempt + 1); }, RETRY_MS);
+      };
+      document.head.appendChild(s);
+      return;
+    }
+    if (attempt < MAX_ATTEMPTS) setTimeout(function () { boot(attempt + 1); }, RETRY_MS);
+  }
+  boot(0);
+})();
+</script>
 <script>
 window.pageInit = async function () {
   var langSelect = document.getElementById('lang-switch');
