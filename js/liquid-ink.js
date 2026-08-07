@@ -1073,6 +1073,17 @@ let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
 update();
 
+// --- Robustesse : perte / restauration du contexte WebGL ---
+if (canvas.addEventListener) {
+    canvas.addEventListener('webglcontextlost', function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        config.PAUSED = true;
+    });
+    canvas.addEventListener('webglcontextrestored', function () {
+        location.reload();
+    });
+}
+
 function update () {
     const dt = calcDeltaTime();
     if (resizeCanvas())
