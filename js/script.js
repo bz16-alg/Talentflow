@@ -21,7 +21,9 @@
     }
   }
 
+  var sidebarWired = false;
   function wireSidebarToggle() {
+    if (sidebarWired) return;
     try {
       const sidebar = document.querySelector('.sidebar');
       const overlay = document.querySelector('.sidebar-overlay');
@@ -52,6 +54,7 @@
         link.addEventListener('click', close);
       });
       window.addEventListener('resize', onResize);
+      sidebarWired = true;
     } catch (err) {
       console.warn('[TalentFlow] wireSidebarToggle', err);
     }
@@ -82,7 +85,9 @@
     }
   }
 
+  var logoutWired = false;
   function wireLogout() {
+    if (logoutWired) return;
     try {
       const elements = document.querySelectorAll('[data-logout]');
       if (!elements.length) return;
@@ -119,6 +124,7 @@
           }
         });
       });
+      logoutWired = true;
     } catch (err) {
       console.warn('[TalentFlow] wireLogout', err);
     }
