@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow — Postuler</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="apply">
+<header class="topbar" style="position:static">
+  <span class="auth-logo" style="margin:0"><i class="fa-solid fa-briefcase"></i><span>TalentFlow</span></span>
+  <div class="topbar-actions">
+    <button type="button" id="btn-logout" class="btn btn-outline btn-sm d-none" data-i18n="nav.logout">Déconnexion</button>
+    <select id="lang-switch" class="lang-switch" aria-label="Langue"></select>
+  </div>
+</header>
+<main class="page" style="max-width:600px;margin:0 auto">
+  <div class="signin-card" id="apply-card">
+    <h2 data-i18n="apply.title">Postuler</h2>
+    <p class="page-subtitle" id="apply-subtitle" data-i18n="apply.subtitle">Rejoignez notre équipe</p>
+    <form id="apply-form" novalidate>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="f-name"><span data-i18n="apply.fullName">Nom complet</span> <span class="required">*</span></label>
+          <input id="f-name" class="input" type="text" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-email"><span data-i18n="apply.email">Email</span> <span class="required">*</span></label>
+          <input id="f-email" class="input" type="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-phone" data-i18n="apply.phone">Téléphone</label>
+          <input id="f-phone" class="input" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-city" data-i18n="apply.city">Ville</label>
+          <input id="f-city" class="input" type="text">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-linkedin" data-i18n="apply.linkedin">Profil LinkedIn</label>
+        <input id="f-linkedin" class="input" type="url" placeholder="https://linkedin.com/in/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-cover" data-i18n="apply.coverLetter">Lettre de motivation</label>
+        <textarea id="f-cover" class="textarea" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="apply.cv">CV</label>
+        <div class="dropzone" id="cv-dropzone">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p id="cv-name" data-i18n="apply.cv">CV (PDF)</p>
+          <p class="dropzone-hint"><span data-i18n="common.clickToUpload">Cliquez pour importer</span> — <span data-i18n="common.dragDrop">ou glissez-déposez ici</span></p>
+        </div>
+        <input type="file" id="cv-input" accept=".pdf,application/pdf" hidden>
+      </div>
+      <p class="text-muted" style="font-size:12px;margin-bottom:16px" data-i18n="apply.required">Les champs marqués * sont obligatoires</p>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="apply.submit">Envoyer ma candidature</span></button>
+    </form>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+(async function pageInit() {
+  'use strict';
+  if (window.Widgets) Widgets.applyTranslations();
+
+  const params = new URLSearchParams(window.location.search);
+  const jobId = params.get('job');
+  const utm = params.get('utm_source');
+
+  const subtitle = document.getElementById('apply-subtitle');
+  if (jobId) {
+    try {
+      const job = await DB.getJobOffer(jobId);
+      if (job && job.title) subtitle.textContent = t('apply.subtitle') + ' — ' + job.title;
+    } catch (e) {}
+  }
+
+  const card = document.getElementById('apply-card');
+  const form = document.getElementById('apply-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const dropzone = document.getElementById('cv-dropzone');
+  const cvInput = document.getElementById('cv-input');
+  const cvName = document.getElementById('cv-name');
+  let cvFile = null;
+
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) {
+    try {
+      const sess = await Auth.supabase.auth.getSession();
+      if (sess.data && sess.data.session) logoutBtn.classList.remove('d-none');
+    } catch (e) {}
+    logoutBtn.addEventListener('click', async function () {
+      try { await Auth.logout(); } catch (e) {}
+      location.reload();
+    });
+  }
+
+  dropzone.addEventListener('click', function () { cvInput.click(); });
+  ['dragover', 'dragenter'].forEach(function (evt) {
+    dropzone.addEventListener(evt, function (e) {
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (evt) {
+    dropzone.addEventListener(evt, function (e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+    });
+  });
+  dropzone.addEventListener('drop', function (e) {
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) {
+      cvFile = file;
+      cvName.textContent = file.name;
+    }
+  });
+  cvInput.addEventListener('change', function () {
+    const file = this.files && this.files[0];
+    if (file) {
+      cvFile = file;
+      cvName.textContent = file.name;
+    }
+  });
+
+  function showSuccess() {
+    form.style.display = 'none';
+    card.innerHTML =
+      '<div style="text-align:center;padding:40px 20px">' +
+      '<i class="fa-solid fa-circle-check" style="font-size:64px;color:#16a34a;margin-bottom:16px"></i>' +
+      '<h2>' + Widgets.escapeHTML(t('apply.success')) + '</h2>' +
+      '<p class="text-muted">' + Widgets.escapeHTML(t('apply.sent')) + '</p>' +
+      '</div>';
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const fullName = document.getElementById('f-name').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    if (!fullName || !email) {
+      Widgets.toast(Widgets.escapeHTML(t('apply.required')), 'error');
+      return;
+    }
+    const phone = document.getElementById('f-phone').value.trim();
+    const city = document.getElementById('f-city').value.trim();
+    const linkedin = document.getElementById('f-linkedin').value.trim();
+    const cover = document.getElementById('f-cover').value.trim();
+    submitBtn.disabled = true;
+    submitBtn.querySelector('i').className = 'fa-solid fa-spinner fa-spin';
+    try {
+      const res = await Auth.supabase.rpc('apply_to_offer', {
+        p_full_name: fullName,
+        p_email: email,
+        p_phone: phone || null,
+        p_city: city || null,
+        p_linkedin_url: linkedin || null,
+        p_cover_letter: cover || null,
+        p_source: utm || 'email',
+        p_job_offer_id: jobId
+      });
+      if (res.error) throw res.error;
+      if (!res.data) throw new Error(t('apply.error'));
+      if (cvFile) {
+        try {
+          await AI.upsertCv(res.data, cvFile);
+        } catch (e4) {}
+      }
+      showSuccess();
+    } catch (err) {
+      Widgets.toast(Widgets.escapeHTML(err.message || t('apply.error')), 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.querySelector('i').className = 'fa-solid fa-paper-plane';
+    }
+  });
+})();
+</script>
+</body>
+</html>

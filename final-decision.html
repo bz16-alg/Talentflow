@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow — Décisions</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="final-decision">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><i class="fa-solid fa-bolt"></i> TalentFlow</div>
+    <nav class="sidebar-nav">
+      <a href="recruiter-dashboard.html" class="sidebar-link" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+      <a href="create-job.html" class="sidebar-link" data-page="offers"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+      <a href="candidates.html" class="sidebar-link" data-page="candidates"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+      <a href="ai-screening.html" class="sidebar-link" data-page="aiScreening"><i class="fa-solid fa-robot"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+      <a href="interviews.html" class="sidebar-link" data-page="interviews"><i class="fa-solid fa-calendar-check"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+      <a href="final-decision.html" class="sidebar-link" data-page="decisions"><i class="fa-solid fa-scale-balanced"></i><span data-i18n="nav.decisions">Décisions</span></a>
+      <a href="job-offer.html" class="sidebar-link" data-page="offerLetters"><i class="fa-solid fa-file-contract"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+      <a href="onboarding.html" class="sidebar-link" data-page="onboarding"><i class="fa-solid fa-user-plus"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+      <a href="admin-users.html" class="sidebar-link admin-only" data-page="admin-users"><i class="fa-solid fa-user-shield"></i><span data-i18n="nav.admin">Administration</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="avatar" data-avatar>?</span>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" data-user-name></div>
+        <div class="sidebar-user-role" data-user-role></div>
+      </div>
+      <button type="button" class="sidebar-logout" data-logout aria-label="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+  <main class="main">
+    <header class="topbar">
+      <button type="button" class="btn btn-icon btn-outline" data-sidebar-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="topbar-title">TalentFlow</div>
+      <div class="topbar-actions">
+        <span class="text-muted" data-topbar-name></span>
+        <select class="select lang-switch" data-lang-switch id="lang-switch" aria-label="Langue"></select>
+      </div>
+    </header>
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="decision.title">Décisions</h1>
+          <p class="page-subtitle" data-i18n="decision.subtitle">Décidez en toute transparence</p>
+        </div>
+        <button type="button" class="btn btn-outline" id="btnSendRejects"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="decision.sendRejects">Envoyer les refus</span></button>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="filter-bar">
+        <div class="form-group">
+          <label class="form-label" for="filterOffer" data-i18n="offer.title">Offres d'emploi</label>
+          <select class="select" id="filterOffer"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="filterCluster" data-i18n="candidates.cluster">Cluster</label>
+          <select class="select" id="filterCluster"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="filterDecision" data-i18n="common.status">Statut</label>
+          <select class="select" id="filterDecision"></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 data-i18n="decision.comparison">Comparaison des candidats</h3></div>
+        <div class="card-body"><div id="decisionTable"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var state = { offers: [], rows: [] };
+
+  function $(id) { return document.getElementById(id); }
+
+  function truncate(s, n) {
+    s = String(s || '');
+    return s.length > n ? s.slice(0, n).trim() + '…' : s;
+  }
+
+  function formModal(opts) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      var modalEl = document.createElement('div');
+      modalEl.className = 'modal';
+      var header = document.createElement('div');
+      header.className = 'modal-header';
+      var title = document.createElement('h3');
+      title.textContent = opts.title || '';
+      var closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'btn btn-icon btn-outline modal-close';
+      closeBtn.setAttribute('aria-label', 'Fermer');
+      closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      header.append(title, closeBtn);
+      var body = document.createElement('div');
+      body.className = 'modal-body';
+      body.innerHTML = opts.bodyHTML || '';
+      var footer = document.createElement('div');
+      footer.className = 'modal-footer';
+      var cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'btn btn-outline';
+      cancelBtn.textContent = t('common.cancel');
+      var confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.className = 'btn btn-primary';
+      confirmBtn.textContent = opts.confirmText || t('common.confirm');
+      var settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey);
+        overlay.remove();
+        resolve(result);
+      }
+      function onKey(e) { if (e.key === 'Escape') finish(false); }
+      closeBtn.addEventListener('click', function () { finish(false); });
+      cancelBtn.addEventListener('click', function () { finish(false); });
+      confirmBtn.addEventListener('click', function () {
+        var form = body.querySelector('form');
+        if (!form) { finish(true); return; }
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        var data = {};
+        new FormData(form).forEach(function (v, k) { data[k] = v; });
+        finish(data);
+      });
+      overlay.addEventListener('mousedown', function (e) { if (e.target === overlay) finish(false); });
+      footer.append(cancelBtn, confirmBtn);
+      modalEl.append(header, body, footer);
+      overlay.appendChild(modalEl);
+      document.body.appendChild(overlay);
+      document.addEventListener('keydown', onKey);
+      confirmBtn.focus();
+    });
+  }
+
+  function decisionLabel(r) {
+    return r.decision ? r.decision.decision : 'pending';
+  }
+
+  function candidateOf(r) {
+    return (r.app.candidates && r.app.candidates.full_name) || '—';
+  }
+
+  function emailOf(r) {
+    return (r.app.candidates && r.app.candidates.email) || '';
+  }
+
+  function jobOf(r) {
+    return (r.app.job_offers && r.app.job_offers.title) || '—';
+  }
+
+  function scoreCell(score) {
+    var v = Math.round(Number(score) || 0);
+    var cls = v >= 80 ? 'score-high' : (v >= 60 ? 'score-mid' : 'score-low');
+    var bar = v >= 80 ? 'green' : (v >= 60 ? 'orange' : 'red');
+    return '<span class="score ' + cls + '">' + v + '</span>' +
+      '<div class="progress"><div class="progress-bar ' + bar + '" style="width:' + v + '%"></div></div>';
+  }
+
+  function clusterCell(c) {
+    if (!c) return '—';
+    var map = { A: 'badge-blue', B: 'badge-green', C: 'badge-orange' };
+    return '<span class="badge ' + (map[c] || 'badge-gray') + '">Cluster ' + Widgets.escapeHTML(c) + '</span>';
+  }
+
+  function notesCell(avg) {
+    if (avg === null || avg === undefined) return '—';
+    return '<i class="fa-solid fa-star" style="color:#f59e0b"></i> ' + avg.toFixed(1) + '/5';
+  }
+
+  function decisionCell(r) {
+    var label = decisionLabel(r);
+    var h = Widgets.badge(label);
+    if (r.decision && r.decision.comments) {
+      h += '<div class="text-muted" style="font-size:12px;margin-top:4px;max-width:220px">' + Widgets.escapeHTML(truncate(r.decision.comments, 80)) + '</div>';
+    }
+    return h;
+  }
+
+  function actionsCell(r) {
+    if (!r.decision) {
+      return '<div class="actions">' +
+        '<button type="button" class="btn btn-sm btn-success" data-action="hire" data-id="' + r.app.id + '"><i class="fa-solid fa-user-check"></i> ' + t('decision.hire') + '</button>' +
+        '<button type="button" class="btn btn-sm btn-danger" data-action="reject" data-id="' + r.app.id + '"><i class="fa-solid fa-user-xmark"></i> ' + t('decision.reject') + '</button></div>';
+    }
+    if (r.decision.decision === 'hired') {
+      return '<button type="button" class="btn btn-sm btn-outline" data-action="letter" data-id="' + r.app.id + '"><i class="fa-solid fa-file-contract"></i> ' + t('letter.generate') + '</button>';
+    }
+    return '<span class="text-muted">—</span>';
+  }
+
+  function filteredRows() {
+    var sel = $('filterDecision').value;
+    if (!sel) return state.rows;
+    return state.rows.filter(function (r) { return decisionLabel(r) === sel; });
+  }
+
+  function renderTable() {
+    var rows = filteredRows().map(function (r) {
+      return {
+        name: candidateOf(r),
+        email: emailOf(r),
+        job: jobOf(r),
+        score: r.app.match_score,
+        avg: r.avg,
+        cluster: r.app.ai_cluster,
+        strengths: truncate(r.app.ai_summary, 100),
+        app: r
+      };
+    });
+    Widgets.renderTable('#decisionTable', {
+      columns: [
+        { label: t('interviews.candidate'), render: function (r) {
+            return '<span style="display:inline-flex;align-items:center;gap:10px">' + Widgets.avatar(r.name) +
+              '<span><span style="display:block">' + Widgets.escapeHTML(r.name) + '</span>' +
+              '<span class="text-muted" style="font-size:12px">' + Widgets.escapeHTML(r.email) + '</span></span></span>';
+          } },
+        { label: t('apply.job'), render: function (r) { return Widgets.escapeHTML(r.job); } },
+        { label: t('decision.iaScore'), render: function (r) { return scoreCell(r.score); } },
+        { label: t('decision.interviewNotes'), render: function (r) { return notesCell(r.avg); } },
+        { label: t('candidates.cluster'), render: function (r) { return clusterCell(r.cluster); } },
+        { label: t('decision.strengths'), render: function (r) { return Widgets.escapeHTML(r.strengths) || '—'; } },
+        { label: t('decision.title'), render: function (r) { return decisionCell(r.app); } },
+        { label: t('common.actions'), render: function (r) { return actionsCell(r.app); } }
+      ],
+      rows: rows,
+      emptyText: t('decision.noDecisions')
+    });
+  }
+
+  function renderStats() {
+    var rows = state.rows;
+    var pending = rows.filter(function (r) { return !r.decision; }).length;
+    var hired = rows.filter(function (r) { return r.decision && r.decision.decision === 'hired'; }).length;
+    var rejected = rows.filter(function (r) { return r.decision && r.decision.decision === 'rejected'; }).length;
+    $('statsGrid').innerHTML =
+      Widgets.statCard({ icon: 'fa-hourglass-half', color: 'gray', value: pending, label: t('decision.pending') }) +
+      Widgets.statCard({ icon: 'fa-user-check', color: 'green', value: hired, label: t('decision.hired') }) +
+      Widgets.statCard({ icon: 'fa-user-xmark', color: 'red', value: rejected, label: t('decision.rejected') });
+  }
+
+  function fillFilters() {
+    var offerSel = $('filterOffer');
+    offerSel.innerHTML = '<option value="">' + t('common.allOffers') + '</option>' +
+      state.offers.map(function (o) { return '<option value="' + o.id + '">' + Widgets.escapeHTML(o.title) + '</option>'; }).join('');
+    var clusterSel = $('filterCluster');
+    clusterSel.innerHTML = '<option value="">' + t('common.all') + '</option>' +
+      Object.keys(CONFIG.CLUSTERS).map(function (c) { return '<option value="' + c + '">Cluster ' + c + '</option>'; }).join('');
+    var decisionSel = $('filterDecision');
+    decisionSel.innerHTML = '<option value="">' + t('common.all') + '</option>' +
+      '<option value="pending">' + t('decision.pending') + '</option>' +
+      '<option value="hired">' + t('decision.hired') + '</option>' +
+      '<option value="rejected">' + t('decision.rejected') + '</option>';
+  }
+
+  async function loadData() {
+    try {
+      var offerId = $('filterOffer').value || undefined;
+      var cluster = $('filterCluster').value || undefined;
+      var apps = await DB.getApplications({ job_offer_id: offerId, cluster: cluster });
+      var rows = await Promise.all(apps.map(async function (a) {
+        var results = await Promise.all([
+          DB.getDecisions({ application_id: a.id }),
+          DB.getInterviews({ application_id: a.id })
+        ]);
+        var decisions = results[0] || [];
+        var interviews = results[1] || [];
+        var latest = decisions.length ? decisions[0] : null;
+        var vals = [];
+        interviews.forEach(function (i) {
+          if (i.status !== 'completed' || !i.scores) return;
+          Object.keys(i.scores).forEach(function (k) {
+            var v = Number(i.scores[k]);
+            if (!isNaN(v)) vals.push(v);
+          });
+        });
+        var avg = vals.length ? vals.reduce(function (x, y) { return x + y; }, 0) / vals.length : null;
+        return { app: a, decision: latest, avg: avg };
+      }));
+      state.rows = rows;
+      renderStats();
+      renderTable();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function decisionFlow(appId, type) {
+    var row = state.rows.find(function (r) { return r.app.id === appId; });
+    if (!row) return;
+    var msg = type === 'hired' ? t('decision.hireConfirm') : t('decision.rejectConfirm');
+    var data = await formModal({
+      title: msg,
+      confirmText: t('common.confirm'),
+      bodyHTML: '<form>' +
+        '<p class="text-muted mb-16">' + Widgets.escapeHTML(candidateOf(row) + ' — ' + jobOf(row)) + '</p>' +
+        '<div class="form-group"><label class="form-label">' + t('decision.comments') + ' <span class="text-muted">(' + t('common.optional') + ')</span></label>' +
+        '<textarea class="input" name="comments" rows="3"></textarea></div>' +
+        '</form>'
+    });
+    if (!data) return;
+    try {
+      var profile = Auth.getProfile();
+      await DB.createDecision({
+        application_id: appId,
+        decision: type,
+        decided_by: (profile && profile.id) || undefined,
+        comments: data.comments || ''
+      });
+      await DB.updateApplication(appId, { status: type === 'hired' ? 'offered' : 'rejected' });
+      Widgets.toast(t('decision.decisionMade'), 'success');
+      loadData();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  async function sendRejects() {
+    var candidates = state.rows
+      .filter(function (r) { return r.app.status === 'screened' || r.app.status === 'new'; })
+      .map(function (r) { return { cand: r.app.candidates || {}, job: r.app.job_offers || {} }; });
+    if (!candidates.length) {
+      Widgets.toast(t('decision.noDecisions'), 'info');
+      return;
+    }
+    var profile = Auth.getProfile();
+    var company = (profile && profile.company) || CONFIG.APP_NAME;
+    var ok = await Widgets.confirm(
+      t('decision.sendAutoRejects') + ' — ' + candidates.length + ' ' + t('candidates.title').toLowerCase(),
+      t('decision.sendRejects')
+    );
+    if (!ok) return;
+    var sent = 0;
+    var failed = 0;
+    for (var i = 0; i < candidates.length; i++) {
+      var c = candidates[i];
+      try {
+        var email = AI.emailContent('reject', {
+          candidate: c.cand.full_name || '',
+          job: c.job.title || '',
+          company: company
+        });
+        await AI.sendEmail(c.cand.email, email.subject, email.body);
+        sent++;
+      } catch (e) {
+        failed++;
+      }
+    }
+    if (sent) Widgets.toast(t('toasts.sent') + ' (' + sent + ')', 'success');
+    if (failed) Widgets.toast(t('toasts.error') + ' (' + failed + ')', 'error');
+  }
+
+  function onTableClick(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var appId = btn.getAttribute('data-id');
+    var action = btn.getAttribute('data-action');
+    if (action === 'hire') decisionFlow(appId, 'hired');
+    else if (action === 'reject') decisionFlow(appId, 'rejected');
+    else if (action === 'letter') window.location.href = 'job-offer.html?application=' + encodeURIComponent(appId);
+  }
+
+  function init() {
+    $('btnSendRejects').addEventListener('click', sendRejects);
+    $('filterOffer').addEventListener('change', loadData);
+    $('filterCluster').addEventListener('change', loadData);
+    $('filterDecision').addEventListener('change', renderTable);
+    $('decisionTable').addEventListener('click', onTableClick);
+    loadData();
+  }
+
+  document.addEventListener('DOMContentLoaded', async function () {
+    try {
+      var profile = await Auth.requireAuth(['recruiter', 'manager']);
+      if (!profile) return;
+      if (window.initSharedLayout) initSharedLayout(profile);
+      if (typeof Widgets !== 'undefined') Widgets.setActiveNav('decisions');
+      state.offers = await DB.getJobOffers({});
+      fillFilters();
+      init();
+    } catch (e) {
+      if (typeof Widgets !== 'undefined') Widgets.toast(getErrorMessage(e), 'error');
+    }
+  });
+})();
+</script>
+</body>
+</html>

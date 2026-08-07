@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow — Lettres d'offre</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="job-offer">
+<div class="layout">
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="recruiter-dashboard.html"><i class="fa-solid fa-briefcase"></i> TalentFlow</a>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" data-page="dashboard" href="recruiter-dashboard.html"><i class="fa-solid fa-gauge-high"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+      <a class="sidebar-link" data-page="offers" href="create-job.html"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+      <a class="sidebar-link" data-page="candidates" href="candidates.html"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+      <a class="sidebar-link" data-page="screening" href="ai-screening.html"><i class="fa-solid fa-robot"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+      <a class="sidebar-link" data-page="interviews" href="interviews.html"><i class="fa-solid fa-calendar-check"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+      <a class="sidebar-link" data-page="decisions" href="final-decision.html"><i class="fa-solid fa-list-check"></i><span data-i18n="nav.decisions">Décisions</span></a>
+      <a class="sidebar-link" data-page="job-offer" href="job-offer.html"><i class="fa-solid fa-file-circle-check"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+      <a class="sidebar-link" data-page="onboarding" href="onboarding.html"><i class="fa-solid fa-user-check"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+      <a class="sidebar-link admin-only" data-page="admin-users" href="admin-users.html"><i class="fa-solid fa-user-shield"></i><span data-i18n="nav.admin">Administration</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="avatar" data-avatar></span>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" data-user-name></div>
+        <div class="sidebar-user-role" data-user-role></div>
+      </div>
+      <button type="button" class="sidebar-logout" data-logout title="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="btn btn-icon btn-outline" data-sidebar-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <span class="topbar-title" data-topbar-name></span>
+      <div class="topbar-actions">
+        <select id="lang-switch" class="lang-switch" aria-label="Langue"></select>
+      </div>
+    </header>
+    <main class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="letter.title">Lettres d'offre</h1>
+          <p class="page-subtitle" data-i18n="letter.subtitle">Générez et envoyez les offres officielles</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-generate"><i class="fa-solid fa-file-circle-plus"></i> <span data-i18n="letter.generate">Générer la lettre</span></button>
+      </div>
+      <div class="filter-bar">
+        <div class="form-group">
+          <label class="form-label" data-i18n="common.allOffers">Toutes les offres</label>
+          <select id="filter-offer" class="select">
+            <option value=""></option>
+          </select>
+        </div>
+      </div>
+      <div class="stats-grid" id="stats"></div>
+      <div class="card">
+        <div class="card-header">
+          <h3 data-i18n="letter.title">Lettres d'offre</h3>
+        </div>
+        <div class="card-body" id="letters-table"></div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+(async function pageInit() {
+  'use strict';
+  const profile = await Auth.requireAuth(['recruiter', 'manager']);
+  if (!profile) return;
+  if (window.initSharedLayout) window.initSharedLayout(profile);
+  if (window.Widgets) Widgets.applyTranslations();
+
+  const params = new URLSearchParams(window.location.search);
+  const prefillApplication = params.get('application');
+
+  let offers = [];
+  let allApps = [];
+  let applications = [];
+  let letters = [];
+  let currentOffer = '';
+
+  const els = {
+    filterOffer: document.getElementById('filter-offer'),
+    stats: document.getElementById('stats'),
+    table: document.getElementById('letters-table'),
+    generateBtn: document.getElementById('btn-generate')
+  };
+
+  async function loadAll() {
+    const results = await Promise.all([DB.getJobOffers({}), DB.getApplications({}), DB.getOfferLetters({})]);
+    offers = results[0] || [];
+    allApps = results[1] || [];
+    applications = allApps.filter(function (a) { return a.status === 'offered'; });
+    letters = results[2] || [];
+  }
+
+  function fillOfferFilter() {
+    els.filterOffer.innerHTML = '<option value="">' + Widgets.escapeHTML(t('common.allOffers')) + '</option>' +
+      offers.map(function (o) {
+        return '<option value="' + Widgets.escapeHTML(o.id) + '">' + Widgets.escapeHTML(o.title || o.department || o.id) + '</option>';
+      }).join('');
+  }
+
+  function filteredLetters() {
+    if (!currentOffer) return letters;
+    return letters.filter(function (l) { return String(l.applications ? l.applications.job_offer_id : '') === String(currentOffer); });
+  }
+
+  function renderStats() {
+    const rows = filteredLetters();
+    const count = function (s) { return rows.filter(function (l) { return l.candidate_response === s; }).length; };
+    els.stats.innerHTML =
+      Widgets.statCard({ icon: 'fa-paper-plane', color: 'blue', value: rows.length, label: t('letter.sent') }) +
+      Widgets.statCard({ icon: 'fa-check-circle', color: 'green', value: count('accepted'), label: t('letter.accepted') }) +
+      Widgets.statCard({ icon: 'fa-xmark-circle', color: 'red', value: count('refused'), label: t('letter.refused') });
+  }
+
+  function candidateCell(row) {
+    const c = row.applications ? row.applications.candidates : {};
+    return '<div style="display:flex;align-items:center;gap:10px">' + Widgets.avatar(c.full_name, 'avatar-sm') + '<span>' + Widgets.escapeHTML(c.full_name || '—') + '</span></div>';
+  }
+
+  function renderTable() {
+    const rows = filteredLetters();
+    Widgets.renderTable(els.table, {
+      columns: [
+        { label: t('common.name'), render: candidateCell },
+        { label: t('letter.jobTitle'), render: function (r) { return Widgets.escapeHTML((r.applications && r.applications.job_offers && r.applications.job_offers.title) || '—'); } },
+        { label: t('letter.document'), render: function (r) {
+          return r.document_url
+            ? '<button type="button" class="btn btn-outline btn-sm" data-action="view" data-id="' + Widgets.escapeHTML(r.id) + '"><i class="fa-solid fa-file-pdf"></i> ' + Widgets.escapeHTML(t('letter.viewPdf')) + '</button>'
+            : '<span class="text-muted">—</span>';
+        } },
+        { label: t('letter.status'), render: function (r) {
+          return r.candidate_response ? Widgets.badge(r.candidate_response) : '<span class="badge badge-gray">—</span>';
+        } },
+        { label: t('letter.sentOn'), render: function (r) { return Widgets.formatDateTime(r.created_at) || '—'; } },
+        { label: t('letter.responseDate'), render: function (r) { return r.candidate_response_date ? Widgets.formatDateTime(r.candidate_response_date) : '—'; } },
+        { label: t('common.actions'), render: function (r) {
+          return '<div style="display:flex;gap:8px">' +
+            '<button type="button" class="btn btn-icon btn-outline" title="' + Widgets.escapeHTML(t('letter.sendEmail')) + '" data-action="email" data-id="' + Widgets.escapeHTML(r.id) + '"><i class="fa-solid fa-envelope"></i></button>' +
+            '<button type="button" class="btn btn-icon btn-outline" title="' + Widgets.escapeHTML(t('letter.regenerate')) + '" data-action="regenerate" data-id="' + Widgets.escapeHTML(r.id) + '"><i class="fa-solid fa-rotate"></i></button>' +
+            '</div>';
+        } }
+      ],
+      rows: rows,
+      emptyText: t('letter.noLetters')
+    });
+    els.table.querySelectorAll('[data-action]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const action = btn.getAttribute('data-action');
+        const letter = letters.find(function (l) { return String(l.id) === String(btn.getAttribute('data-id')); });
+        if (!letter) return;
+        if (action === 'view') openPdfModal(letter);
+        else if (action === 'email') sendLetterEmail(letter);
+        else if (action === 'regenerate') openGenerateModal(letter);
+      });
+    });
+  }
+
+  function renderAll() {
+    renderStats();
+    renderTable();
+  }
+
+  function applicationOptions(selectedId) {
+    let opts = applications.map(function (a) {
+      return { id: a.id, label: ((a.candidates && a.candidates.full_name) || '') + ' — ' + ((a.job_offers && a.job_offers.title) || '') };
+    });
+    if (selectedId && !opts.some(function (o) { return String(o.id) === String(selectedId); })) {
+      const a = allApps.find(function (x) { return String(x.id) === String(selectedId); });
+      if (a) opts.unshift({ id: a.id, label: ((a.candidates && a.candidates.full_name) || '') + ' — ' + ((a.job_offers && a.job_offers.title) || '') });
+    }
+    return opts;
+  }
+
+  async function openGenerateModal(letter) {
+    const isRegen = !!letter;
+    const selectedId = letter ? letter.application_id : prefillApplication;
+    const opts = applicationOptions(selectedId);
+    const conditionsDefault = "Contrat CDI, période d'essai 3 mois, avantages sociaux, congés annuels.";
+    const bodyHTML =
+      '<div class="form-group"><label class="form-label">' + Widgets.escapeHTML(t('common.selectOffer')) + ' <span class="required">*</span></label>' +
+      '<select id="gen-app" class="select">' +
+      opts.map(function (o) {
+        return '<option value="' + Widgets.escapeHTML(o.id) + '"' + (String(o.id) === String(selectedId) ? ' selected' : '') + '>' + Widgets.escapeHTML(o.label) + '</option>';
+      }).join('') +
+      '</select></div>' +
+      '<div class="form-group"><label class="form-label">' + Widgets.escapeHTML(t('letter.salary')) + '</label>' +
+      '<input id="gen-salary" class="input" type="text" placeholder="Ex. : 120 000 DA / mois" value="' + Widgets.escapeHTML(letter && letter.salary ? letter.salary : '') + '"></div>' +
+      '<div class="form-group"><label class="form-label">' + Widgets.escapeHTML(t('letter.startDate')) + '</label>' +
+      '<input id="gen-date" class="input" type="date" value="' + Widgets.escapeHTML(letter && letter.start_date ? letter.start_date : '') + '"></div>' +
+      '<div class="form-group"><label class="form-label">' + Widgets.escapeHTML(t('letter.conditions')) + '</label>' +
+      '<textarea id="gen-conditions" class="textarea" rows="4">' + Widgets.escapeHTML(letter && letter.conditions ? letter.conditions : conditionsDefault) + '</textarea></div>';
+    const ok = await Widgets.modal({
+      title: isRegen ? t('letter.regenerate') : t('letter.generate'),
+      bodyHTML: bodyHTML,
+      confirmText: t('letter.generate'),
+      cancelText: t('common.cancel')
+    });
+    if (!ok) return;
+    const applicationId = document.getElementById('gen-app').value;
+    const salary = document.getElementById('gen-salary').value.trim();
+    const startDate = document.getElementById('gen-date').value;
+    const conditions = document.getElementById('gen-conditions').value.trim();
+    const app = allApps.find(function (a) { return String(a.id) === String(applicationId); });
+    if (!app) {
+      Widgets.toast(Widgets.escapeHTML(t('toasts.error')), 'error');
+      return;
+    }
+    const cand = app.candidates || {};
+    const job = app.job_offers || {};
+    els.generateBtn.disabled = true;
+    try {
+      const pdf = await AI.generatePdf('offer_letter', {
+        company: profile.company || '',
+        candidate_name: cand.full_name || '',
+        job_title: job.title || '',
+        department: job.department || '',
+        manager_name: profile.full_name || '',
+        manager: profile.full_name || '',
+        salary: salary,
+        start_date: startDate,
+        conditions: conditions
+      });
+      if (isRegen) {
+        await DB.updateOfferLetter(letter.id, { document_url: pdf.url });
+      } else {
+        const content = ((job.title || '') + ' — ' + (cand.full_name || '') + (salary ? ' — ' + salary : '')).trim();
+        await DB.createOfferLetter({
+          application_id: applicationId,
+          content: content || null,
+          salary: salary || null,
+          start_date: startDate || null,
+          conditions: conditions || null,
+          candidate_response: null
+        });
+      }
+      Widgets.toast(t('toasts.saved'), 'success');
+      window.location.reload();
+    } catch (e) {
+      Widgets.toast(Widgets.escapeHTML(e.message || t('toasts.error')), 'error');
+    } finally {
+      els.generateBtn.disabled = false;
+    }
+  }
+
+  function openPdfModal(letter) {
+    const title = t('letter.preview') + (letter.applications && letter.applications.candidates ? ' — ' + (letter.applications.candidates.full_name || '') : '');
+    let viewer = null;
+    const p = Widgets.modal({
+      title: title,
+      bodyHTML: '<div id="pdf-viewer" style="min-height:420px"></div>',
+      confirmText: t('common.close'),
+      hideCancel: true
+    });
+    viewer = Widgets.initPDFViewer(document.getElementById('pdf-viewer'), letter.document_url);
+    p.then(function () { if (viewer && viewer.destroy) viewer.destroy(); });
+  }
+
+  async function sendLetterEmail(letter) {
+    const cand = letter.applications ? letter.applications.candidates : {};
+    const job = letter.applications ? letter.applications.job_offers : {};
+    const content = AI.emailContent('offer', {
+      candidate: cand.full_name || '',
+      job: job.title || '',
+      company: profile.company || '',
+      link: CONFIG.APP_URL + '/offer-response.html?letter=' + letter.id
+    });
+    const ok = await Widgets.modal({
+      title: t('letter.sendEmail'),
+      bodyHTML: '<p class="mb-0"><strong>' + Widgets.escapeHTML(content.subject) + '</strong></p>' +
+        '<p class="mb-0" style="white-space:pre-line">' + Widgets.escapeHTML(content.body) + '</p>',
+      confirmText: t('common.send'),
+      cancelText: t('common.cancel')
+    });
+    if (!ok || !cand.email) return;
+    try {
+      await AI.sendEmail(cand.email, content.subject, content.body);
+      Widgets.toast(t('toasts.sent'), 'success');
+    } catch (e) {
+      Widgets.toast(Widgets.escapeHTML(e.message || t('toasts.error')), 'error');
+    }
+  }
+
+  els.generateBtn.addEventListener('click', function () { openGenerateModal(null); });
+  els.filterOffer.addEventListener('change', function () {
+    currentOffer = els.filterOffer.value;
+    renderAll();
+  });
+
+  try {
+    await loadAll();
+  } catch (e) {
+    Widgets.toast(Widgets.escapeHTML(e.message || t('toasts.error')), 'error');
+  }
+  fillOfferFilter();
+  renderAll();
+  if (prefillApplication) openGenerateModal(null);
+})();
+</script>
+</body>
+</html>

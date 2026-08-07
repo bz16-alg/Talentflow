@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentFlow — Tableau de bord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .quick-grid .btn { justify-content: flex-start; }
+  </style>
+</head>
+<body data-page="recruiter-dashboard">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><i class="fa-solid fa-user-tie"></i><span>TalentFlow</span></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-page="dashboard" href="recruiter-dashboard.html"><i class="fa-solid fa-gauge-high"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+        <a class="sidebar-link" data-page="offres" href="create-job.html"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+        <a class="sidebar-link" data-page="candidats" href="candidates.html"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+        <a class="sidebar-link" data-page="screening" href="ai-screening.html"><i class="fa-solid fa-wand-magic-sparkles"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+        <a class="sidebar-link" data-page="entretiens" href="interviews.html"><i class="fa-solid fa-calendar-days"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+        <a class="sidebar-link" data-page="decisions" href="final-decision.html"><i class="fa-solid fa-scale-balanced"></i><span data-i18n="nav.decisions">Décisions</span></a>
+        <a class="sidebar-link" data-page="lettres" href="job-offer.html"><i class="fa-solid fa-file-signature"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+        <a class="sidebar-link" data-page="onboarding" href="onboarding.html"><i class="fa-solid fa-rocket"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+        <a class="sidebar-link admin-only" data-page="admin-users" href="admin-users.html"><i class="fa-solid fa-user-shield"></i><span data-i18n="nav.admin">Administration</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="avatar" data-avatar>?</span>
+        <div class="sidebar-user">
+          <div class="sidebar-user-name" data-user-name></div>
+          <div class="sidebar-user-role" data-user-role></div>
+        </div>
+        <button type="button" class="sidebar-logout" data-logout aria-label="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <div class="main">
+      <header class="topbar">
+        <button type="button" class="btn btn-icon btn-outline" data-sidebar-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="topbar-title" data-topbar-name></div>
+        <div class="topbar-actions">
+          <select class="lang-switch" id="lang-switch" aria-label="Langue"></select>
+        </div>
+      </header>
+      <div class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" data-i18n="dashboard.title">Tableau de bord</h1>
+            <p class="page-subtitle" data-i18n="dashboard.subtitle">Vue d'ensemble de votre recrutement</p>
+          </div>
+          <a href="create-job.html" class="btn btn-primary"><i class="fa-solid fa-plus"></i><span data-i18n="dashboard.newOffer">Nouvelle offre</span></a>
+        </div>
+
+        <div class="pipeline">
+          <div class="pipeline-step done" data-i18n="flow.step1">Publication de l'offre</div>
+          <div class="pipeline-step done" data-i18n="flow.step2">Réception candidatures</div>
+          <div class="pipeline-step active" data-i18n="flow.step3">Présélection IA</div>
+          <div class="pipeline-step" data-i18n="flow.step4">Entretien d'embauche</div>
+          <div class="pipeline-step" data-i18n="flow.step5">Décision finale</div>
+          <div class="pipeline-step" data-i18n="flow.step6">Offre officielle</div>
+          <div class="pipeline-step" data-i18n="flow.step7">Intégration (PV)</div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="dashboard.evolution">Évolution</h3></div>
+            <div class="card-body">
+              <div class="chart-box"><div class="chart-wrap" id="evolutionWrap"><canvas id="evolutionChart"></canvas></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="dashboard.applicationsByCluster">Candidatures par cluster</h3></div>
+            <div class="card-body">
+              <div class="chart-box"><div class="chart-wrap" id="clusterWrap"><canvas id="clusterChart"></canvas></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="dashboard.recentOffers">Offres récentes</h3></div>
+            <div class="card-body" id="recentOffers"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="dashboard.recentApplications">Dernières candidatures</h3></div>
+            <div class="card-body" id="recentApplications"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="interviews.title">Entretiens</h3></div>
+            <div class="card-body" id="upcomingInterviews"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="dashboard.quickAccess">Accès rapide</h3></div>
+            <div class="card-body">
+              <div class="quick-grid">
+                <a class="btn btn-outline" href="create-job.html"><i class="fa-solid fa-briefcase"></i><span data-i18n="flow.step1">Publication de l'offre</span></a>
+                <a class="btn btn-outline" href="candidates.html"><i class="fa-solid fa-users"></i><span data-i18n="flow.step2">Réception candidatures</span></a>
+                <a class="btn btn-outline" href="ai-screening.html"><i class="fa-solid fa-wand-magic-sparkles"></i><span data-i18n="flow.step3">Présélection IA</span></a>
+                <a class="btn btn-outline" href="interviews.html"><i class="fa-solid fa-calendar-days"></i><span data-i18n="flow.step4">Entretien d'embauche</span></a>
+                <a class="btn btn-outline" href="final-decision.html"><i class="fa-solid fa-scale-balanced"></i><span data-i18n="flow.step5">Décision finale</span></a>
+                <a class="btn btn-outline" href="job-offer.html"><i class="fa-solid fa-file-signature"></i><span data-i18n="flow.step6">Offre officielle</span></a>
+                <a class="btn btn-outline" href="onboarding.html"><i class="fa-solid fa-rocket"></i><span data-i18n="flow.step7">Intégration (PV)</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/widgets.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+    function renderStats(stats, offers, applications) {
+      const grid = document.getElementById('statsGrid');
+      if (!grid) return;
+      const ids = new Set((applications || []).map(function (a) { return a.candidate_id; }).filter(Boolean));
+      const cards = [
+        Widgets.statCard({ icon: 'fa-briefcase', label: t('dashboard.totalOffers'), value: (offers || []).length, color: 'blue' }),
+        Widgets.statCard({ icon: 'fa-circle-check', label: t('dashboard.activeOffers'), value: stats ? stats.activeOffers : 0, color: 'green' }),
+        Widgets.statCard({ icon: 'fa-users', label: t('dashboard.totalCandidates'), value: ids.size || (applications || []).length, color: 'blue' }),
+        Widgets.statCard({ icon: 'fa-calendar-check', label: t('dashboard.scheduledInterviews'), value: stats ? stats.scheduledInterviews : 0, color: 'orange' }),
+        Widgets.statCard({ icon: 'fa-user-check', label: t('dashboard.hires'), value: stats ? stats.hires : 0, color: 'purple' })
+      ];
+      grid.innerHTML = cards.join('');
+    }
+
+    function renderCharts(stats, applications) {
+      if (stats && stats.series && window.Chart) {
+        const labels = (stats.months || []).map(function (m) {
+          const parts = String(m).split('-');
+          const month = MONTH_KEYS[Number(parts[1]) - 1] || '';
+          return month ? t('months.' + month) : m;
+        });
+        const s = stats.series;
+        Widgets.chart('#evolutionChart', {
+          type: 'line',
+          labels: labels,
+          datasets: [
+            { label: t('dashboard.offers'), data: s.offers || [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', fill: true, tension: .3 },
+            { label: t('dashboard.applications'), data: s.applications || [], borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,.08)', fill: true, tension: .3 },
+            { label: t('dashboard.interviews'), data: s.interviews || [], borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,.08)', fill: true, tension: .3 },
+            { label: t('dashboard.hiresLabel'), data: s.hires || [], borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.08)', fill: true, tension: .3 }
+          ]
+        });
+      } else {
+        Widgets.emptyState('#evolutionWrap', 'fa-regular fa-chart-line', t('dashboard.noData'));
+      }
+      const counts = { A: 0, B: 0, C: 0 };
+      (applications || []).forEach(function (a) {
+        if (a.ai_cluster in counts) counts[a.ai_cluster]++;
+      });
+      if (window.Chart && (counts.A + counts.B + counts.C) > 0) {
+        Widgets.chart('#clusterChart', {
+          type: 'doughnut',
+          labels: [t('dashboard.clusterA'), t('dashboard.clusterB'), t('dashboard.clusterC')],
+          datasets: [{ data: [counts.A, counts.B, counts.C], backgroundColor: ['#16a34a', '#d97706', '#dc2626'] }]
+        });
+      } else {
+        Widgets.emptyState('#clusterWrap', 'fa-regular fa-chart-pie', t('dashboard.noData'));
+      }
+    }
+
+    function renderRecentOffers(offers, applications) {
+      const container = document.getElementById('recentOffers');
+      if (!container) return;
+      const byOffer = {};
+      (applications || []).forEach(function (a) {
+        if (a.job_offer_id) byOffer[a.job_offer_id] = (byOffer[a.job_offer_id] || 0) + 1;
+      });
+      const rows = (offers || []).slice(0, 5).map(function (o) {
+        return {
+          title: Widgets.escapeHTML(o.title || t('common.unknown')) + (o.department ? ' <span class="text-muted">' + Widgets.escapeHTML(o.department) + '</span>' : ''),
+          status: Widgets.badge(o.status),
+          count: byOffer[o.id] || 0,
+          date: Widgets.formatDate(o.created_at),
+          view: '<a class="btn btn-sm btn-outline" href="create-job.html?id=' + encodeURIComponent(o.id) + '" title="' + Widgets.escapeHTML(t('common.view')) + '"><i class="fa-solid fa-eye"></i></a>'
+        };
+      });
+      Widgets.renderTable(container, {
+        columns: [
+          { key: 'title', label: t('offer.titleLabel'), render: function (r) { return r.title; } },
+          { key: 'status', label: t('common.status'), render: function (r) { return r.status; } },
+          { key: 'count', label: t('offer.candidatesCount'), render: function (r) { return '<span class="badge badge-blue">' + r.count + '</span>'; } },
+          { key: 'date', label: t('common.date'), render: function (r) { return r.date; } },
+          { key: 'view', label: '', render: function (r) { return r.view; } }
+        ],
+        rows: rows,
+        emptyText: t('offer.noOffers')
+      });
+    }
+
+    function renderRecentApplications(applications) {
+      const container = document.getElementById('recentApplications');
+      if (!container) return;
+      const rows = (applications || []).slice(0, 6).map(function (a) {
+        const cand = a.candidates || {};
+        const offer = a.job_offers || {};
+        const name = cand.full_name || t('common.unknown');
+        const source = a.source || cand.source || '';
+        const platform = CONFIG.PLATFORMS[source];
+        const score = typeof a.match_score === 'number' ? a.match_score : null;
+        const scoreClass = score >= 80 ? 'score-high' : score >= 60 ? 'score-mid' : 'score-low';
+        const cluster = a.ai_cluster;
+        const clusterBadge = cluster in CONFIG.CLUSTERS
+          ? '<span class="badge badge-' + (cluster === 'A' ? 'green' : cluster === 'B' ? 'orange' : 'red') + '">' + Widgets.escapeHTML(t('dashboard.cluster' + cluster)) + '</span>'
+          : '<span class="text-muted">&mdash;</span>';
+        return {
+          name: Widgets.avatar(name, 'avatar-sm') + ' <strong>' + Widgets.escapeHTML(name) + '</strong>',
+          offer: Widgets.escapeHTML(offer.title || t('common.unknown')),
+          source: platform
+            ? '<span class="badge" style="background:' + platform.color + '1a;color:' + platform.color + '">' + Widgets.escapeHTML(platform.name) + '</span>'
+            : '<span class="badge badge-gray">' + Widgets.escapeHTML(source || '&mdash;') + '</span>',
+          score: score !== null ? '<span class="score ' + scoreClass + '">' + score + '%</span>' : '<span class="text-muted">&mdash;</span>',
+          cluster: clusterBadge,
+          status: Widgets.badge(a.status),
+          date: Widgets.formatDate(a.created_at)
+        };
+      });
+      Widgets.renderTable(container, {
+        columns: [
+          { key: 'name', label: t('candidates.fullName'), render: function (r) { return r.name; } },
+          { key: 'offer', label: t('offer.titleLabel'), render: function (r) { return r.offer; } },
+          { key: 'source', label: t('candidates.source'), render: function (r) { return r.source; } },
+          { key: 'score', label: t('candidates.score'), render: function (r) { return r.score; } },
+          { key: 'cluster', label: t('candidates.cluster'), render: function (r) { return r.cluster; } },
+          { key: 'status', label: t('common.status'), render: function (r) { return r.status; } },
+          { key: 'date', label: t('common.date'), render: function (r) { return r.date; } }
+        ],
+        rows: rows,
+        emptyText: t('dashboard.noData')
+      });
+    }
+
+    function renderUpcomingInterviews(interviews) {
+      const container = document.getElementById('upcomingInterviews');
+      if (!container) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const icons = { technical: 'fa-laptop-code', hr: 'fa-handshake', manager: 'fa-user-tie', final: 'fa-gavel' };
+      const upcoming = (interviews || []).filter(function (i) {
+        return i.status !== 'cancelled' && (i.date || '') >= today;
+      }).slice(0, 5);
+      if (!upcoming.length) {
+        Widgets.emptyState(container, 'fa-regular fa-calendar', t('interviews.noInterviews'));
+        return;
+      }
+      const items = upcoming.map(function (i) {
+        const cand = (i.applications && i.applications.candidates) || {};
+        const offer = (i.applications && i.applications.job_offers) || {};
+        const time = i.time ? String(i.time).slice(0, 5) : '';
+        return '<div class="timeline-item">' +
+          '<div class="timeline-dot"></div>' +
+          '<div class="timeline-item-title"><i class="fa-solid ' + (icons[i.type] || 'fa-calendar-check') + '"></i> ' +
+          Widgets.escapeHTML(cand.full_name || t('common.unknown')) + ' &mdash; ' + Widgets.escapeHTML(offer.title || '') + '</div>' +
+          '<div class="timeline-item-text">' + Widgets.formatDate(i.date) + (time ? ' &middot; ' + time : '') + ' &middot; ' + Widgets.badge(i.status) + '</div>' +
+          '</div>';
+      });
+      container.innerHTML = '<div class="timeline">' + items.join('') + '</div>';
+    }
+
+    window.pageInit = async function () {
+      try {
+        const profile = await Auth.requireAuth(['recruiter', 'manager']);
+        if (!profile) return;
+        initSharedLayout(profile);
+        Widgets.setActiveNav('dashboard');
+        let stats = null;
+        let offers = [];
+        let applications = [];
+        let interviews = [];
+        try {
+          stats = await DB.getStats();
+        } catch (err) {
+          Widgets.toast(t('toasts.error'), 'error');
+        }
+        try {
+          applications = await DB.getApplications({});
+        } catch (err) {
+          Widgets.toast(t('toasts.error'), 'error');
+        }
+        try {
+          offers = await DB.getJobOffers({});
+        } catch (err) {
+          Widgets.toast(t('toasts.error'), 'error');
+        }
+        try {
+          interviews = await DB.getInterviews({});
+        } catch (err) {
+          Widgets.toast(t('toasts.error'), 'error');
+        }
+        renderStats(stats, offers, applications);
+        renderCharts(stats, applications);
+        renderRecentOffers(offers, applications);
+        renderRecentApplications(applications);
+        renderUpcomingInterviews(interviews);
+      } catch (err) {
+        console.error('[TalentFlow] dashboard', err);
+      }
+    };
+  })();
+  pageInit();
+  </script>
+</body>
+</html>

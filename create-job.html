@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentFlow — Offre d'emploi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="create-job">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><i class="fa-solid fa-user-tie"></i><span>TalentFlow</span></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" data-page="dashboard" href="recruiter-dashboard.html"><i class="fa-solid fa-gauge-high"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+        <a class="sidebar-link" data-page="offres" href="create-job.html"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+        <a class="sidebar-link" data-page="candidats" href="candidates.html"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+        <a class="sidebar-link" data-page="screening" href="ai-screening.html"><i class="fa-solid fa-wand-magic-sparkles"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+        <a class="sidebar-link" data-page="entretiens" href="interviews.html"><i class="fa-solid fa-calendar-days"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+        <a class="sidebar-link" data-page="decisions" href="final-decision.html"><i class="fa-solid fa-scale-balanced"></i><span data-i18n="nav.decisions">Décisions</span></a>
+        <a class="sidebar-link" data-page="lettres" href="job-offer.html"><i class="fa-solid fa-file-signature"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+        <a class="sidebar-link" data-page="onboarding" href="onboarding.html"><i class="fa-solid fa-rocket"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+        <a class="sidebar-link admin-only" data-page="admin-users" href="admin-users.html"><i class="fa-solid fa-user-shield"></i><span data-i18n="nav.admin">Administration</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="avatar" data-avatar>?</span>
+        <div class="sidebar-user">
+          <div class="sidebar-user-name" data-user-name></div>
+          <div class="sidebar-user-role" data-user-role></div>
+        </div>
+        <button type="button" class="sidebar-logout" data-logout aria-label="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay"></div>
+    <div class="main">
+      <header class="topbar">
+        <button type="button" class="btn btn-icon btn-outline" data-sidebar-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="topbar-title" data-topbar-name></div>
+        <div class="topbar-actions">
+          <select class="lang-switch" id="lang-switch" aria-label="Langue"></select>
+        </div>
+      </header>
+      <div class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" id="pageTitle">Créer une offre</h1>
+            <p class="page-subtitle" data-i18n="offer.subtitle">Gérez vos offres et leurs publications</p>
+          </div>
+          <div class="flex gap-8" id="headerActions"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="offer.detail">Détail de l'offre</h3></div>
+            <div class="card-body">
+              <form class="form-grid-2" id="offerForm" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="offerTitle"><span data-i18n="offer.titleLabel">Titre du poste</span> <span class="required">*</span></label>
+                  <input class="input" id="offerTitle" type="text" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerDepartment" data-i18n="offer.department">Département</label>
+                  <input class="input" id="offerDepartment" type="text">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerContract" data-i18n="offer.contractType">Type de contrat</label>
+                  <select class="select" id="offerContract">
+                    <option value="">&mdash;</option>
+                    <option value="CDI" data-i18n="offer.contractCDI">CDI</option>
+                    <option value="CDD" data-i18n="offer.contractCDD">CDD</option>
+                    <option value="stage" data-i18n="offer.contractStage">Stage</option>
+                    <option value="freelance" data-i18n="offer.contractFreelance">Freelance</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerExp" data-i18n="offer.experienceLevel">Niveau d'expérience</label>
+                  <select class="select" id="offerExp">
+                    <option value="">&mdash;</option>
+                    <option value="junior" data-i18n="offer.expJunior">Junior</option>
+                    <option value="mid" data-i18n="offer.expMid">Confirmé</option>
+                    <option value="senior" data-i18n="offer.expSenior">Senior</option>
+                    <option value="lead" data-i18n="offer.expLead">Lead / Manager</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerLocation" data-i18n="offer.location">Lieu</label>
+                  <input class="input" id="offerLocation" type="text">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerSalaryMin" data-i18n="offer.salaryMin">Salaire min</label>
+                  <input class="input" id="offerSalaryMin" type="number" min="0" step="1000">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="offerSalaryMax" data-i18n="offer.salaryMax">Salaire max</label>
+                  <input class="input" id="offerSalaryMax" type="number" min="0" step="1000">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label" for="offerDescription" data-i18n="offer.description">Description</label>
+                  <textarea class="textarea" id="offerDescription" rows="4"></textarea>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label" for="offerRequirements" data-i18n="offer.requirements">Prérequis</label>
+                  <textarea class="textarea" id="offerRequirements" rows="3"></textarea>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label" for="offerSkill" data-i18n="offer.skills">Compétences</label>
+                  <div class="flex gap-8">
+                    <input class="input" id="offerSkill" type="text" data-i18n-placeholder="offer.skillPlaceholder" placeholder="Ex. : JavaScript, Node.js.">
+                    <button type="button" class="btn btn-outline" id="addSkillBtn"><i class="fa-solid fa-plus"></i><span data-i18n="offer.addSkill">Ajouter une compétence</span></button>
+                  </div>
+                  <div class="flex gap-8 mt-8" id="skillsTags"></div>
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <button type="submit" class="btn btn-primary" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i><span data-i18n="offer.save">Enregistrer</span></button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3 data-i18n="offer.platforms">Plateformes</h3></div>
+            <div class="card-body">
+              <p class="text-muted" data-i18n="offer.publishHelp">Choisissez les plateformes où publier votre offre</p>
+              <div class="form-grid-2" id="platformsList"></div>
+              <div class="mt-16" id="linkPreview"></div>
+              <button type="button" class="btn btn-primary btn-block mt-16" id="publishAllBtn"><i class="fa-solid fa-bullhorn"></i><span data-i18n="offer.publishAll">Publier sur toutes les plateformes</span></button>
+              <hr>
+              <div id="publicationsTable"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/widgets.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    let state = { id: null, offer: null, skills: [], selectedPlatforms: new Set() };
+
+    function renderPlatforms() {
+      const list = document.getElementById('platformsList');
+      if (!list) return;
+      list.innerHTML = Object.keys(CONFIG.PLATFORMS).map(function (key) {
+        const p = CONFIG.PLATFORMS[key];
+        return '<label class="checkbox-label">' +
+          '<input type="checkbox" class="checkbox" data-platform="' + key + '"' + (state.selectedPlatforms.has(key) ? ' checked' : '') + '>' +
+          '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + p.color + '"></span>' +
+          Widgets.escapeHTML(p.name) +
+          '</label>';
+      }).join('');
+      list.querySelectorAll('input[data-platform]').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          if (cb.checked) state.selectedPlatforms.add(cb.value);
+          else state.selectedPlatforms.delete(cb.value);
+          updateLinkPreview();
+        });
+      });
+    }
+
+    function updateLinkPreview() {
+      const box = document.getElementById('linkPreview');
+      if (!box) return;
+      const selected = Object.keys(CONFIG.PLATFORMS).filter(function (k) { return state.selectedPlatforms.has(k); });
+      if (!selected.length) {
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = selected.map(function (k) {
+        const p = CONFIG.PLATFORMS[k];
+        const link = buildTrackedLink(state.id || 'ID_OFFRE', k);
+        return '<div class="mb-8">' +
+          '<div class="fw-700" style="color:' + p.color + '">' + Widgets.escapeHTML(p.name) + '</div>' +
+          '<code style="word-break:break-all;font-size:12px">' + Widgets.escapeHTML(link) + '</code>' +
+          '</div>';
+      }).join('');
+    }
+
+    function renderSkillsTags() {
+      const box = document.getElementById('skillsTags');
+      if (!box) return;
+      box.innerHTML = state.skills.map(function (s) {
+        return '<span class="tag">' + Widgets.escapeHTML(s) +
+          '<button type="button" data-remove-skill="' + Widgets.escapeHTML(s) + '" aria-label="' + Widgets.escapeHTML(t('common.delete')) + '">&times;</button>' +
+          '</span>';
+      }).join('');
+      box.querySelectorAll('[data-remove-skill]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const skill = btn.getAttribute('data-remove-skill');
+          state.skills = state.skills.filter(function (s) { return s !== skill; });
+          renderSkillsTags();
+        });
+      });
+    }
+
+    function addSkill() {
+      const input = document.getElementById('offerSkill');
+      const value = input.value.trim();
+      if (!value) return;
+      if (state.skills.indexOf(value) === -1) state.skills.push(value);
+      input.value = '';
+      renderSkillsTags();
+    }
+
+    function collectFormData() {
+      const val = function (id) { return document.getElementById(id).value; };
+      const num = function (id) {
+        const v = document.getElementById(id).value;
+        return (v === '' || isNaN(Number(v))) ? null : Number(v);
+      };
+      const text = function (id) {
+        const v = val(id).trim();
+        return v === '' ? null : v;
+      };
+      return {
+        title: val('offerTitle').trim(),
+        department: text('offerDepartment'),
+        contract_type: val('offerContract') || null,
+        experience_level: val('offerExp') || null,
+        location: text('offerLocation'),
+        salary_min: num('offerSalaryMin'),
+        salary_max: num('offerSalaryMax'),
+        description: text('offerDescription'),
+        requirements: text('offerRequirements'),
+        skills: state.skills
+      };
+    }
+
+    function fillForm(offer) {
+      document.getElementById('offerTitle').value = offer.title || '';
+      document.getElementById('offerDepartment').value = offer.department || '';
+      document.getElementById('offerContract').value = offer.contract_type || '';
+      document.getElementById('offerExp').value = offer.experience_level || '';
+      document.getElementById('offerLocation').value = offer.location || '';
+      document.getElementById('offerSalaryMin').value = offer.salary_min != null ? offer.salary_min : '';
+      document.getElementById('offerSalaryMax').value = offer.salary_max != null ? offer.salary_max : '';
+      document.getElementById('offerDescription').value = offer.description || '';
+      document.getElementById('offerRequirements').value = offer.requirements || '';
+    }
+
+    function renderHeaderActions(offer) {
+      const actions = document.getElementById('headerActions');
+      if (!actions) return;
+      if (!offer) {
+        actions.innerHTML = '';
+        return;
+      }
+      let html = '';
+      if (offer.status === 'published') {
+        html += '<button type="button" class="btn btn-outline" id="closeBtn"><i class="fa-solid fa-circle-pause"></i>' + Widgets.escapeHTML(t('offer.close')) + '</button>';
+      } else if (offer.status === 'closed') {
+        html += '<button type="button" class="btn btn-outline" id="reopenBtn"><i class="fa-solid fa-rotate-left"></i>' + Widgets.escapeHTML(t('offer.reopen')) + '</button>';
+      } else if (offer.status === 'draft') {
+        html += '<button type="button" class="btn btn-primary" id="headerPublishBtn"><i class="fa-solid fa-bullhorn"></i>' + Widgets.escapeHTML(t('offer.publish')) + '</button>';
+      }
+      html += '<button type="button" class="btn btn-danger" id="deleteBtn"><i class="fa-solid fa-trash"></i>' + Widgets.escapeHTML(t('common.delete')) + '</button>';
+      actions.innerHTML = html;
+
+      const closeBtn = document.getElementById('closeBtn');
+      if (closeBtn) closeBtn.addEventListener('click', async function () {
+        const ok = await Widgets.confirm(t('offer.closeConfirm'));
+        if (!ok) return;
+        try {
+          await DB.updateJobOffer(state.id, { status: 'closed' });
+          Widgets.toast(t('toasts.closed'), 'success');
+          state.offer = await DB.getJobOffer(state.id);
+          renderHeaderActions(state.offer);
+        } catch (err) {
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+        }
+      });
+
+      const reopenBtn = document.getElementById('reopenBtn');
+      if (reopenBtn) reopenBtn.addEventListener('click', async function () {
+        try {
+          await DB.updateJobOffer(state.id, { status: 'published' });
+          Widgets.toast(t('toasts.success'), 'success');
+          state.offer = await DB.getJobOffer(state.id);
+          renderHeaderActions(state.offer);
+        } catch (err) {
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+        }
+      });
+
+      const publishBtn = document.getElementById('headerPublishBtn');
+      if (publishBtn) publishBtn.addEventListener('click', function () { handleSave(true); });
+
+      const deleteBtn = document.getElementById('deleteBtn');
+      if (deleteBtn) deleteBtn.addEventListener('click', async function () {
+        const ok = await Widgets.confirm(t('offer.deleteConfirm'));
+        if (!ok) return;
+        try {
+          await DB.deleteJobOffer(state.id);
+          window.location.href = 'recruiter-dashboard.html';
+        } catch (err) {
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+        }
+      });
+    }
+
+    async function loadPublications() {
+      const box = document.getElementById('publicationsTable');
+      if (!box) return;
+      if (!state.id) {
+        box.innerHTML = '';
+        return;
+      }
+      try {
+        const pubs = await DB.getPublications(state.id);
+        const rows = (pubs || []).map(function (p) {
+          const platform = CONFIG.PLATFORMS[p.platform] || { name: p.platform, color: '#64748b' };
+          const link = p.tracked_link || '';
+          return {
+            platform: '<span class="badge" style="background:' + platform.color + '1a;color:' + platform.color + '">' + Widgets.escapeHTML(platform.name) + '</span>',
+            link: '<div class="flex gap-8" style="align-items:center">' +
+              '<code style="word-break:break-all;font-size:12px">' + Widgets.escapeHTML(link) + '</code>' +
+              '<button type="button" class="btn btn-sm btn-outline" data-copy-link="' + Widgets.escapeHTML(link) + '" title="' + Widgets.escapeHTML(t('offer.copyLink')) + '"><i class="fa-solid fa-copy"></i></button>' +
+              '</div>',
+            external: p.published_url
+              ? '<a href="' + Widgets.escapeHTML(p.published_url) + '" target="_blank" rel="noopener" title="' + Widgets.escapeHTML(t('offer.externalUrl')) + '"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>'
+              : '<span class="text-muted">&mdash;</span>',
+            status: Widgets.badge(p.status),
+            date: Widgets.formatDate(p.published_at)
+          };
+        });
+        Widgets.renderTable(box, {
+          columns: [
+            { key: 'platform', label: t('offer.platforms'), render: function (r) { return r.platform; } },
+            { key: 'link', label: t('offer.trackedLink'), render: function (r) { return r.link; } },
+            { key: 'external', label: t('offer.externalUrl'), render: function (r) { return r.external; } },
+            { key: 'status', label: t('common.status'), render: function (r) { return r.status; } },
+            { key: 'date', label: t('offer.publicationDate'), render: function (r) { return r.date; } }
+          ],
+          rows: rows,
+          emptyText: t('offer.noPublications')
+        });
+        box.querySelectorAll('[data-copy-link]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            navigator.clipboard.writeText(btn.getAttribute('data-copy-link')).then(function () {
+              Widgets.toast(t('toasts.copied'), 'success');
+            }).catch(function () {
+              Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+            });
+          });
+        });
+      } catch (err) {
+        Widgets.toast(t('toasts.error'), 'error');
+      }
+    }
+
+    async function doPublish() {
+      if (!state.id) return false;
+      if (!state.selectedPlatforms.size) {
+        Widgets.toast(t('offer.noPlatforms'), 'error');
+        return false;
+      }
+      const platforms = Array.from(state.selectedPlatforms);
+      for (let i = 0; i < platforms.length; i++) {
+        const key = platforms[i];
+        await DB.createPublication({
+          job_offer_id: state.id,
+          platform: key,
+          tracked_link: buildTrackedLink(state.id, key),
+          status: 'pending',
+          published_url: CONFIG.PLATFORMS[key].url || ''
+        });
+      }
+      state.offer = await DB.updateJobOffer(state.id, { status: 'published', published_platforms: platforms });
+      Widgets.toast(t('toasts.published'), 'success');
+      renderHeaderActions(state.offer);
+      loadPublications();
+      return true;
+    }
+
+    async function handleSave(publish) {
+      const titleInput = document.getElementById('offerTitle');
+      if (!titleInput.value.trim()) {
+        Widgets.toast(t('offer.titleRequired'), 'error');
+        titleInput.focus();
+        return;
+      }
+      const data = collectFormData();
+      try {
+        if (state.id) {
+          state.offer = await DB.updateJobOffer(state.id, data);
+          state.id = state.offer.id;
+          if (publish) {
+            await doPublish();
+          } else {
+            Widgets.toast(t('toasts.saved'), 'success');
+          }
+        } else {
+          const created = await DB.createJobOffer(Object.assign({}, data, { status: publish ? 'published' : 'draft' }));
+          state.id = created.id;
+          state.offer = created;
+          if (publish) {
+            await doPublish();
+          } else {
+            Widgets.toast(t('toasts.saved'), 'success');
+          }
+          window.location.replace('create-job.html?id=' + encodeURIComponent(created.id));
+        }
+      } catch (err) {
+        Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+      }
+    }
+
+    async function loadOffer(id) {
+      try {
+        const offer = await DB.getJobOffer(id);
+        state.id = offer.id;
+        state.offer = offer;
+        state.skills = Array.isArray(offer.skills) ? offer.skills : [];
+        state.selectedPlatforms = new Set(Array.isArray(offer.published_platforms) ? offer.published_platforms : []);
+        document.getElementById('pageTitle').textContent = t('offer.edit');
+        document.title = 'TalentFlow — ' + (offer.title || t('offer.edit'));
+        fillForm(offer);
+        renderSkillsTags();
+        renderPlatforms();
+        updateLinkPreview();
+        renderHeaderActions(offer);
+        loadPublications();
+      } catch (err) {
+        Widgets.toast(t('toasts.error'), 'error');
+      }
+    }
+
+    function wireForm() {
+      const form = document.getElementById('offerForm');
+      if (form) form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        handleSave(false);
+      });
+      const addBtn = document.getElementById('addSkillBtn');
+      if (addBtn) addBtn.addEventListener('click', addSkill);
+      const skillInput = document.getElementById('offerSkill');
+      if (skillInput) skillInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addSkill();
+        }
+      });
+      const publishAllBtn = document.getElementById('publishAllBtn');
+      if (publishAllBtn) publishAllBtn.addEventListener('click', async function () {
+        if (!state.id) {
+          Widgets.toast(t('offer.saveFirst'), 'warning');
+          return;
+        }
+        try {
+          await doPublish();
+        } catch (err) {
+          Widgets.toast(err && err.message ? err.message : t('toasts.error'), 'error');
+        }
+      });
+    }
+
+    window.pageInit = async function () {
+      try {
+        const profile = await Auth.requireAuth(['recruiter', 'manager']);
+        if (!profile) return;
+        initSharedLayout(profile);
+        Widgets.setActiveNav('offres');
+        wireForm();
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (id) {
+          await loadOffer(id);
+        } else {
+          document.getElementById('pageTitle').textContent = t('offer.create');
+          renderSkillsTags();
+          renderPlatforms();
+          updateLinkPreview();
+        }
+      } catch (err) {
+        console.error('[TalentFlow] create-job', err);
+      }
+    };
+  })();
+  pageInit();
+  </script>
+</body>
+</html>

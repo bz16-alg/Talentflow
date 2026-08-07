@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentFlow — Présélection IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="ai-screening">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><i class="fa-solid fa-bolt"></i><span data-i18n="splash.title">TalentFlow</span></div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" data-page="recruiter-dashboard" href="recruiter-dashboard.html"><i class="fa-solid fa-chart-pie"></i><span data-i18n="nav.dashboard">Tableau de bord</span></a>
+      <a class="sidebar-link" data-page="create-job" href="create-job.html"><i class="fa-solid fa-briefcase"></i><span data-i18n="nav.offers">Offres</span></a>
+      <a class="sidebar-link" data-page="candidates" href="candidates.html"><i class="fa-solid fa-users"></i><span data-i18n="nav.candidates">Candidats</span></a>
+      <a class="sidebar-link" data-page="ai-screening" href="ai-screening.html"><i class="fa-solid fa-wand-magic-sparkles"></i><span data-i18n="nav.aiScreening">Présélection IA</span></a>
+      <a class="sidebar-link" data-page="interviews" href="interviews.html"><i class="fa-solid fa-calendar-check"></i><span data-i18n="nav.interviews">Entretiens</span></a>
+      <a class="sidebar-link" data-page="final-decision" href="final-decision.html"><i class="fa-solid fa-gavel"></i><span data-i18n="nav.decisions">Décisions</span></a>
+      <a class="sidebar-link" data-page="job-offer" href="job-offer.html"><i class="fa-solid fa-file-signature"></i><span data-i18n="nav.offerLetters">Lettres d'offre</span></a>
+      <a class="sidebar-link" data-page="onboarding" href="onboarding.html"><i class="fa-solid fa-rocket"></i><span data-i18n="nav.onboarding">Intégration</span></a>
+      <a class="sidebar-link admin-only" data-page="admin-users" href="admin-users.html"><i class="fa-solid fa-user-shield"></i><span data-i18n="nav.admin">Administration</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="avatar" data-avatar>?</span>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" data-user-name>—</div>
+        <div class="sidebar-user-role" data-user-role>—</div>
+      </div>
+      <button type="button" class="sidebar-logout" data-logout title="Déconnexion"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+  <main class="main">
+    <header class="topbar">
+      <div class="flex" style="gap:12px;align-items:center">
+        <button type="button" class="btn btn-icon btn-outline" data-sidebar-toggle aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-title" data-topbar-name>—</span>
+      </div>
+      <div class="topbar-actions">
+        <select class="select lang-switch" id="lang-switch"></select>
+      </div>
+    </header>
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="screening.title">Présélection IA</h1>
+          <p class="page-subtitle" data-i18n="screening.subtitle">Analyse automatique des candidatures</p>
+        </div>
+        <div class="flex" style="gap:10px">
+          <button type="button" class="btn btn-primary" id="btn-launch" disabled>
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span data-i18n="screening.launch">Lancer la présélection</span>
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-export"><i class="fa-solid fa-file-csv"></i> <span data-i18n="common.export">Exporter</span></button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="form-group" style="flex:1;min-width:240px">
+          <label class="form-label" for="f-offer" data-i18n="offer.title">Offre</label>
+          <select class="select" id="f-offer"></select>
+        </div>
+      </div>
+
+      <div class="tabs" id="cluster-tabs">
+        <button type="button" class="tab active" data-cluster="">Tout</button>
+        <button type="button" class="tab" data-cluster="A">A</button>
+        <button type="button" class="tab" data-cluster="B">B</button>
+        <button type="button" class="tab" data-cluster="C">C</button>
+      </div>
+
+      <div class="pipeline">
+        <div class="pipeline-step" data-i18n="flow.step1">Publication de l'offre</div>
+        <div class="pipeline-step" data-i18n="flow.step2">Réception candidatures</div>
+        <div class="pipeline-step active" data-i18n="flow.step3">Présélection IA</div>
+        <div class="pipeline-step" data-i18n="flow.step4">Entretien d'embauche</div>
+        <div class="pipeline-step" data-i18n="flow.step5">Décision finale</div>
+        <div class="pipeline-step" data-i18n="flow.step6">Offre officielle</div>
+        <div class="pipeline-step" data-i18n="flow.step7">Intégration (PV)</div>
+      </div>
+
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="card" style="overflow:hidden">
+        <div class="card-header">
+          <h3 class="mb-0" data-i18n="screening.results">Résultats</h3>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-auto">
+            <i class="fa-solid fa-envelope-open-text"></i> <span data-i18n="screening.autoEmails">Emails automatiques</span>
+          </button>
+        </div>
+        <div id="table-container"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/translations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/script.js"></script>
+<script>
+(function () {
+  'use strict';
+  var esc = Widgets.escapeHTML;
+  var state = { applications: [], cluster: '' };
+  var profile = null;
+  var tableContainer = document.getElementById('table-container');
+  var offerSel = document.getElementById('f-offer');
+  var btnLaunch = document.getElementById('btn-launch');
+
+  function scoreCell(score) {
+    var n = Number(score) || 0;
+    var cls = n >= 80 ? 'score-high' : n >= 60 ? 'score-mid' : 'score-low';
+    var bar = n >= 80 ? 'green' : n >= 60 ? 'orange' : 'red';
+    return '<div style="display:flex;align-items:center;gap:10px;min-width:120px">' +
+      '<span class="score ' + cls + '">' + n + '</span>' +
+      '<div class="progress" style="flex:1;min-width:50px"><div class="progress-bar ' + bar + '" style="width:' + n + '%"></div></div></div>';
+  }
+
+  function clusterBadge(cluster) {
+    if (!cluster) return '<span class="text-muted">—</span>';
+    var map = { A: ['green', 'A'], B: ['orange', 'B'], C: ['red', 'C'] };
+    var m = map[cluster] || ['gray', cluster];
+    return '<span class="badge badge-' + m[0] + '">' + esc(m[1]) + '</span>';
+  }
+
+  function candidateCell(row) {
+    var c = row.candidates || {};
+    return '<div class="flex" style="gap:10px;align-items:center">' + Widgets.avatar(c.full_name) +
+      '<div><div class="fw-700">' + esc(c.full_name || '—') + '</div>' +
+      '<div class="text-muted" style="font-size:12px">' + esc(c.email || '') + '</div></div></div>';
+  }
+
+  function summaryCell(row) {
+    var s = row.ai_summary || '';
+    if (!s) return '<span class="text-muted">—</span>';
+    var short = s.length > 90 ? s.slice(0, 90).replace(/\s+\S*$/, '') + '…' : s;
+    return '<span data-action="analysis" data-id="' + row.id + '" style="cursor:pointer;color:var(--primary);text-decoration:underline">' + esc(short) + '</span>';
+  }
+
+  function recommendedCell(row) {
+    var rec = row.ai_recommended != null ? !!row.ai_recommended : row.ai_cluster === 'A';
+    return '<span class="' + (rec ? 'text-success' : 'text-muted') + '" style="font-size:16px"><i class="fa-solid ' + (rec ? 'fa-circle-check' : 'fa-circle-xmark') + '"></i></span>';
+  }
+
+  function canReject(row) {
+    return row.ai_cluster === 'C' && (row.status === 'new' || row.status === 'screened');
+  }
+
+  function canInvite(row) {
+    return row.ai_cluster === 'A' && (row.status === 'new' || row.status === 'screened');
+  }
+
+  function actionsCell(row) {
+    var html = '<div class="actions">';
+    if (canReject(row)) {
+      html += '<button type="button" class="btn btn-icon btn-outline btn-sm btn-danger" data-action="reject" data-id="' + row.id + '" title="' + esc(t('screening.rejectEmail')) + '"><i class="fa-solid fa-envelope-circle-xmark"></i></button>';
+    }
+    if (canInvite(row)) {
+      html += '<button type="button" class="btn btn-icon btn-outline btn-sm btn-success" data-action="invite" data-id="' + row.id + '" title="' + esc(t('screening.inviteEmail')) + '"><i class="fa-solid fa-envelope-circle-check"></i></button>';
+    }
+    html += '<button type="button" class="btn btn-icon btn-outline btn-sm" data-action="analysis" data-id="' + row.id + '" title="' + esc(t('common.view')) + '"><i class="fa-solid fa-eye"></i></button></div>';
+    return html;
+  }
+
+  function renderTable() {
+    var rows = state.applications;
+    if (!offerSel.value) {
+      tableContainer.innerHTML = '';
+      Widgets.emptyState(tableContainer, 'fa-briefcase', t('screening.noJob'));
+      return;
+    }
+    if (!rows.length) {
+      Widgets.emptyState(tableContainer, 'fa-folder-open', t('screening.noApplications'));
+      return;
+    }
+    Widgets.renderTable(tableContainer, {
+      columns: [
+        { label: '', render: function (row) { return '<input type="checkbox" class="row-check" data-id="' + row.id + '">'; } },
+        { label: t('common.name'), render: candidateCell },
+        { label: t('candidates.score'), render: function (row) { return scoreCell(row.match_score); } },
+        { label: t('candidates.cluster'), render: function (row) { return clusterBadge(row.ai_cluster); } },
+        { label: t('screening.summary'), render: summaryCell },
+        { label: t('screening.recommended'), render: recommendedCell },
+        { label: t('common.status'), render: function (row) { return Widgets.badge(row.status || 'new'); } },
+        { label: t('common.actions'), render: actionsCell }
+      ],
+      rows: rows,
+      emptyText: t('screening.noApplications')
+    });
+    var firstTh = tableContainer.querySelector('thead th:first-child');
+    if (firstTh) firstTh.innerHTML = '<input type="checkbox" id="check-all" title="' + esc(t('screening.selectAll')) + '">';
+  }
+
+  function renderStats() {
+    var rows = state.applications;
+    var count = function (c) { return rows.filter(function (a) { return a.ai_cluster === c; }).length; };
+    document.getElementById('stats-grid').innerHTML =
+      Widgets.statCard({ icon: 'fa-circle-check', color: 'green', value: count('A'), label: t('screening.clusterA') }) +
+      Widgets.statCard({ icon: 'fa-circle-half-stroke', color: 'orange', value: count('B'), label: t('screening.clusterB') }) +
+      Widgets.statCard({ icon: 'fa-circle-xmark', color: 'red', value: count('C'), label: t('screening.clusterC') });
+  }
+
+  async function loadApplications() {
+    try {
+      if (!offerSel.value) {
+        state.applications = [];
+        renderStats();
+        renderTable();
+        return;
+      }
+      var data = await DB.getApplications({
+        job_offer_id: offerSel.value,
+        cluster: state.cluster || undefined
+      });
+      state.applications = data;
+      renderStats();
+      renderTable();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  function customModal(title, bodyHTML, opts) {
+    opts = opts || {};
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    var modalEl = document.createElement('div');
+    modalEl.className = 'modal';
+    var header = document.createElement('div');
+    header.className = 'modal-header';
+    var h = document.createElement('h3');
+    h.textContent = title;
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn btn-icon btn-outline modal-close';
+    closeBtn.setAttribute('aria-label', 'Fermer');
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    header.append(h, closeBtn);
+    var body = document.createElement('div');
+    body.className = 'modal-body';
+    body.innerHTML = bodyHTML;
+    modalEl.append(header, body);
+    overlay.appendChild(modalEl);
+    document.body.appendChild(overlay);
+    var close = function () { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    var onKey = function (e) { if (e.key === 'Escape') close(); };
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('mousedown', function (e) { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', onKey);
+    return { overlay: overlay, body: body, close: close };
+  }
+
+  function listItems(items, iconClass, colorClass) {
+    if (!items || !items.length) return '';
+    return '<ul style="margin:0;padding-left:18px">' + items.map(function (it) {
+      return '<li style="margin-bottom:6px"><i class="fa-solid fa-circle-check ' + (colorClass || 'text-success') + '" style="margin-right:6px"></i>' + esc(it) + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  function openAnalysisModal(row) {
+    var c = row.candidates || {};
+    var strengths = Array.isArray(row.ai_strengths) ? row.ai_strengths : (row.ai_strengths ? String(row.ai_strengths).split(/\n|,/) : []);
+    var weaknesses = Array.isArray(row.ai_weaknesses) ? row.ai_weaknesses : (row.ai_weaknesses ? String(row.ai_weaknesses).split(/\n|,/) : []);
+    var rec = row.ai_recommended != null ? !!row.ai_recommended : row.ai_cluster === 'A';
+    var html =
+      '<div class="flex" style="gap:12px;align-items:center;margin-bottom:16px">' + Widgets.avatar(c.full_name, 'avatar-lg') +
+      '<div><div class="fw-700">' + esc(c.full_name || '—') + '</div><div class="text-muted" style="font-size:12px">' + esc(c.email || '') + '</div></div></div>' +
+      '<div class="flex" style="gap:20px;align-items:center;margin-bottom:16px">' +
+      '<div style="display:flex;align-items:center;gap:10px"><span class="score ' + ((Number(row.match_score) || 0) >= 80 ? 'score-high' : (Number(row.match_score) || 0) >= 60 ? 'score-mid' : 'score-low') + '">' + (Number(row.match_score) || 0) + '</span>' +
+      '<div><div class="text-muted" style="font-size:11px">' + esc(t('screening.matchScore')) + '</div><div class="fw-700">' + esc(t('candidates.cluster')) + ' ' + esc(row.ai_cluster || '—') + '</div></div></div>' +
+      (rec ? '<span class="badge badge-green"><i class="fa-solid fa-check"></i> ' + esc(t('screening.recommended')) + '</span>' : '') +
+      '</div>';
+    if (row.ai_summary) {
+      html += '<div class="form-group"><label class="form-label">' + esc(t('screening.summary')) + '</label>' +
+        '<div class="card card-body" style="font-size:13px;white-space:pre-wrap">' + esc(row.ai_summary) + '</div></div>';
+    }
+    if (strengths.length) {
+      html += '<div class="form-group"><label class="form-label">' + esc(t('screening.strengths')) + '</label>' + listItems(strengths, 'fa-circle-check', 'text-success') + '</div>';
+    }
+    if (weaknesses.length) {
+      html += '<div class="form-group"><label class="form-label">' + esc(t('screening.weaknesses')) + '</label>' + listItems(weaknesses, 'fa-circle-xmark', 'text-danger') + '</div>';
+    }
+    if (rec) {
+      html += '<div class="card" style="padding:12px;background:var(--success-bg);border-color:#bbf7d0;font-size:13px"><i class="fa-solid fa-circle-check text-success" style="margin-right:6px"></i>' + esc(t('screening.recommendationText')) + '</div>';
+    }
+    customModal(c.full_name || t('screening.summary'), html);
+  }
+
+  function emailDataFor(row) {
+    var c = row.candidates || {};
+    var j = row.job_offers || {};
+    return {
+      candidate: c.full_name || '',
+      job: j.title || '',
+      company: (profile && profile.company) || 'TalentFlow',
+      email: c.email || ''
+    };
+  }
+
+  async function sendEmailFlow(row, template, withPreview) {
+    var data = emailDataFor(row);
+    if (!data.email) {
+      Widgets.toast(t('toasts.error'), 'error');
+      return false;
+    }
+    var content = AI.emailContent(template, data);
+    if (withPreview) {
+      var ok = await Widgets.confirm(
+        '<strong>' + esc(content.subject) + '</strong><br><br><pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;margin:0">' + esc(content.body) + '</pre>',
+        template === 'reject' ? t('screening.rejectEmail') : t('screening.inviteEmail')
+      );
+      if (!ok) return false;
+    }
+    await AI.sendEmail(data.email, content.subject, content.body);
+    await DB.updateApplication(row.id, { status: template === 'reject' ? 'rejected' : 'interview' });
+    Widgets.toast(t('toasts.sent'), 'success');
+    return true;
+  }
+
+  tableContainer.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var row = state.applications.find(function (a) { return a.id === el.getAttribute('data-id'); });
+    if (!row) return;
+    var act = el.getAttribute('data-action');
+    if (act === 'analysis') {
+      openAnalysisModal(row);
+    } else if (act === 'reject' || act === 'invite') {
+      sendEmailFlow(row, act, true).then(function (sent) {
+        if (sent) loadApplications();
+      }).catch(function (err) {
+        Widgets.toast(getErrorMessage(err), 'error');
+      });
+    }
+  });
+
+  tableContainer.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 'check-all') {
+      tableContainer.querySelectorAll('.row-check').forEach(function (cb) { cb.checked = t.checked; });
+    } else if (t.classList.contains('row-check')) {
+      var all = tableContainer.querySelectorAll('.row-check');
+      var checkAll = tableContainer.querySelector('#check-all');
+      if (checkAll) checkAll.checked = all.length > 0 && Array.prototype.every.call(all, function (cb) { return cb.checked; });
+    }
+  });
+
+  document.getElementById('btn-auto').addEventListener('click', async function () {
+    var checked = tableContainer.querySelectorAll('.row-check:checked');
+    var ids = Array.prototype.map.call(checked, function (cb) { return cb.getAttribute('data-id'); });
+    if (!ids.length) return;
+    var btn = this;
+    btn.disabled = true;
+    var span = btn.querySelector('span');
+    span.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + esc(t('screening.processing'));
+    var sent = 0;
+    for (var i = 0; i < ids.length; i++) {
+      var row = state.applications.find(function (a) { return a.id === ids[i]; });
+      if (!row) continue;
+      try {
+        if (canReject(row)) {
+          if (await sendEmailFlow(row, 'reject', false)) sent++;
+        } else if (canInvite(row)) {
+          if (await sendEmailFlow(row, 'invite', false)) sent++;
+        }
+      } catch (err) {
+        Widgets.toast(getErrorMessage(err), 'error');
+      }
+    }
+    if (sent) Widgets.toast(sent + ' ' + t('screening.resultsCount'), 'success');
+    btn.disabled = false;
+    span.textContent = t('screening.autoEmails');
+    await loadApplications();
+  });
+
+  async function launch() {
+    if (!offerSel.value) return;
+    var ok = await Widgets.confirm(t('screening.launchConfirm'), t('screening.launch'));
+    if (!ok) return;
+    btnLaunch.disabled = true;
+    btnLaunch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>' + esc(t('screening.launching')) + '</span>';
+    try {
+      var res = await AI.screenOffer(offerSel.value);
+      Widgets.toast((res.processed || 0) + ' ' + t('screening.resultsCount'), 'success');
+    } catch (e) {
+      var msg = (e && typeof e.message === 'string' && /edge|fonction|d[eé]ploy/i.test(e.message)) ? t('screening.edgeError') : ((e && e.message) || t('toasts.error'));
+      Widgets.toast(msg, 'error');
+    } finally {
+      btnLaunch.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="screening.launch"></span>';
+      btnLaunch.disabled = !offerSel.value;
+      if (Widgets.applyTranslations) Widgets.applyTranslations();
+      await loadApplications();
+    }
+  }
+
+  function exportCSV() {
+    var header = ['Candidat', 'Email', 'Offre', 'Score', 'Cluster', 'Résumé', 'Recommandé', 'Statut'];
+    var lines = state.applications.map(function (a) {
+      var c = a.candidates || {};
+      var j = a.job_offers || {};
+      var rec = a.ai_recommended != null ? !!a.ai_recommended : a.ai_cluster === 'A';
+      return [
+        c.full_name || '', c.email || '', j.title || '',
+        a.match_score == null ? '' : a.match_score,
+        a.ai_cluster || '', (a.ai_summary || '').replace(/[\r\n]+/g, ' '),
+        rec ? 'Oui' : 'Non', a.status || ''
+      ];
+    });
+    var csv = '\uFEFF' + [header].concat(lines).map(function (r) {
+      return r.map(function (v) {
+        v = String(v == null ? '' : v);
+        return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      }).join(';');
+    }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'preselection.csv';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 100);
+  }
+
+  async function init() {
+    try {
+      profile = await Auth.requireAuth(['recruiter', 'manager']);
+      if (!profile) return;
+      if (window.initSharedLayout) window.initSharedLayout(profile);
+      var offers = await DB.getJobOffers({});
+      var selectable = offers.filter(function (o) { return o.status === 'published' || o.status === 'draft'; });
+      offerSel.innerHTML = selectable.map(function (o) { return '<option value="' + o.id + '">' + esc(o.title) + '</option>'; }).join('');
+      offerSel.addEventListener('change', function () {
+        btnLaunch.disabled = !offerSel.value;
+        loadApplications();
+      });
+      document.querySelectorAll('#cluster-tabs .tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('#cluster-tabs .tab').forEach(function (x) { x.classList.remove('active'); });
+          tab.classList.add('active');
+          state.cluster = tab.getAttribute('data-cluster');
+          loadApplications();
+        });
+      });
+      btnLaunch.addEventListener('click', launch);
+      document.getElementById('btn-export').addEventListener('click', exportCSV);
+      await loadApplications();
+    } catch (e) {
+      Widgets.toast(getErrorMessage(e), 'error');
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
