@@ -298,6 +298,8 @@ hr {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .topbar-actions {
@@ -1897,6 +1899,16 @@ img {
   .page-header .flex {
     flex-wrap: wrap;
   }
+
+  .filter-bar .form-group {
+    flex: 1 1 calc(50% - 12px) !important;
+    min-width: 0 !important;
+  }
+
+  .filter-bar .search-box {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1953,6 +1965,11 @@ img {
 
   .modal-body {
     padding: 16px;
+  }
+
+  .topbar-title {
+    font-size: 15px;
+    max-width: 30vw;
   }
 
   .toast {
@@ -2038,7 +2055,8 @@ img {
   }
 
   .filter-bar .form-group {
-    flex: 1 1 100%;
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
   }
 
   .pipeline-step {
