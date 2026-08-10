@@ -2804,18 +2804,7 @@ img {
   font-size: 11px;
   color: var(--muted);
 }
-.tf-anim-item-replay strong {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.tf-anim-item-replay:hover strong {
-  color: var(--text);
-}
-.tf-anim-item-replay i {
-  margin-inline-end: 6px;
-  color: var(--muted);
-}
+
 .tf-fly-dot {
   position: absolute;
   width: 10px;
@@ -2880,4 +2869,5 @@ img {
     bottom: 8px;
   }
 }
+
 
