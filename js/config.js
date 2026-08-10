@@ -1,10 +1,10 @@
 const CONFIG = {
   APP_NAME: 'TalentFlow',
-  APP_URL: 'http://localhost:5500', // à remplacer par l'URL de déploiement
-  SUPABASE_URL: 'https://aaytjrtkrdmqairnrevi.supabase.co', // à remplacer
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFheXRqcnRrcmRtcWFpcm5yZXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTEyMDAsImV4cCI6MjEwMTM2NzIwMH0.reMFKn5gSj0Ki_JewXBLOYyetOZZrOZdl2CPs66htQs', // à remplacer
+  APP_URL: 'https://bz16-alg.github.io/Talentflow/',
+  SUPABASE_URL: 'https://aaytjrtkrdmqairnrevi.supabase.co',
+  SUPABASE_ANON_KEY: 'VOTRE-CLE-ANON', // à remplacer par la clé "anon public"
   DEFAULT_LANG: 'fr',
-  EDGE_FUNCTION_BASE: 'https://aaytjrtkrdmqairnrevi.supabase.co/functions/v1', // à remplacer
+  EDGE_FUNCTION_BASE: 'https://aaytjrtkrdmqairnrevi.supabase.co/functions/v1',
   EDGE_FUNCTIONS: { aiScreening: 'ai-screening', sendEmail: 'send-email', generatePdf: 'generate-pdf', candidateResponse: 'candidate-response' },
   PLATFORMS: {
     emploitic: { name: 'EmploiTic', url: 'https://www.emploitic.com', color: '#2563eb' },
