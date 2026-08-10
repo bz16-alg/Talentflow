@@ -6,9 +6,10 @@
 <title>TalentFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='57' fill='%230a1122'/%3E%3Ccircle cx='60' cy='60' r='57' fill='none' stroke='%234ECCEC' stroke-opacity='.45' stroke-width='2'/%3E%3Ccircle cx='47' cy='43' r='14' fill='%234ECCEC'/%3E%3Cpath d='M27 86 C29 66, 38 60, 47 60 L68 60 C78 60, 86 72, 88 86 Z' fill='%23e6edf7'/%3E%3Ccircle cx='92' cy='26' r='4' fill='%2323E294'/%3E%3Ccircle cx='85' cy='40' r='3.5' fill='%234ECCEC'/%3E%3Ccircle cx='80' cy='16' r='3' fill='%234ECCEC'/%3E%3Ccircle cx='95' cy='44' r='2.6' fill='%2323E294'/%3E%3Ccircle cx='74' cy='52' r='2.4' fill='%2323E294'/%3E%3Ccircle cx='89' cy='58' r='2.2' fill='%234ECCEC'/%3E%3C/svg%3E">
 <style>
 .auth-switch {
   color: var(--primary);
@@ -45,16 +46,17 @@
   margin-bottom: 4px;
 }
 </style>
+<script src="js/ui-mode.js?v=20260809"></script>
 </head>
 <body data-page="login">
 
 <div class="auth-page">
 
   <div class="auth-left">
-    <canvas id="liquid-ink-canvas"></canvas>
+    <div id="theme-bg" class="theme-bg" aria-hidden="true"></div>
     <div class="flex flex-between w-100" style="margin-bottom:40px">
       <div class="auth-logo" style="margin-bottom:0">
-        <i class="fa-solid fa-user-tie"></i><span>TalentFlow</span>
+        <span class="logo-slot" data-logo-slot data-animated="true"></span><span>TalentFlow</span>
       </div>
     </div>
 
@@ -69,12 +71,22 @@
   </div>
 
   <div class="auth-right">
-    <div class="flex w-100" style="justify-content:flex-end;margin-bottom:4px">
-      <select class="lang-switch" id="lang-switch" data-lang-switch></select>
+    <div class="flex w-100" style="justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="theme-switcher" role="group" aria-label="Thème">
+        <button type="button" data-theme="a" title="Fond encre + monogramme TF">Encre</button>
+        <button type="button" data-theme="b" title="Flux de particules + profil">Particules</button>
+        <button type="button" data-theme="c" title="Orbes aurore + entonnoir">Aurore</button>
+        <button type="button" data-theme="d" title="Étoiles filantes + fusée">Cosmos</button>
+        <button type="button" data-theme="e" title="Vagues aurora + sonar">Vagues</button>
+      </div>
+      <div class="flex" style="gap:8px;align-items:center">
+<button type="button" class="btn btn-icon btn-outline mode-toggle" data-mode-toggle aria-label="Mode sombre" title="Mode sombre"><i class="fa-solid fa-moon"></i><i class="fa-solid fa-sun"></i></button>
+        <select class="lang-switch" id="lang-switch" data-lang-switch></select>
+      </div>
     </div>
 
     <div class="auth-logo">
-      <i class="fa-solid fa-user-tie"></i><span>TalentFlow</span>
+      <span class="logo-slot" data-logo-slot></span><span>TalentFlow</span>
     </div>
 
     <div class="signin-card">
@@ -196,42 +208,12 @@
 <script src="js/ai.js"></script>
 <script src="js/widgets.js"></script>
 <script src="js/script.js"></script>
-<script>
-// Charge l'animation Liquid Ink uniquement quand le contexte WebGL est
-// disponible (il peut échouer de façon transitoire lors d'actualisations
-// rapides) ; réessaie jusqu'à ~8 fois avant d'abandonner silencieusement.
-(function () {
-  'use strict';
-  var MAX_ATTEMPTS = 8;
-  var RETRY_MS = 400;
-  function acquire(canvas) {
-    try {
-      return canvas.getContext('webgl2') ||
-             canvas.getContext('webgl') ||
-             canvas.getContext('experimental-webgl');
-    } catch (e) {
-      return null;
-    }
-  }
-  function boot(attempt) {
-    var canvas = document.getElementById('liquid-ink-canvas');
-    if (!canvas) return;
-    if (acquire(canvas)) {
-      var s = document.createElement('script');
-      s.src = 'js/liquid-ink.js?v=20260807';
-      s.onerror = function () {
-        if (attempt < MAX_ATTEMPTS) setTimeout(function () { boot(attempt + 1); }, RETRY_MS);
-      };
-      document.head.appendChild(s);
-      return;
-    }
-    if (attempt < MAX_ATTEMPTS) setTimeout(function () { boot(attempt + 1); }, RETRY_MS);
-  }
-  boot(0);
-})();
-</script>
+<script src="js/animations.js"></script>
+<script src="js/theme.js?v=20260809"></script>
+<script src="js/particles.js?v=20260809"></script>
 <script>
 window.pageInit = async function () {
+  if (window.TFAnim) TFAnim.play('login');
   var langSelect = document.getElementById('lang-switch');
   if (langSelect) langSelect.setAttribute('aria-label', typeof t === 'function' ? t('lang.label') : 'Langue');
 

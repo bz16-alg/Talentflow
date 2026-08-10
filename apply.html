@@ -6,13 +6,15 @@
 <title>TalentFlow — Postuler</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script src="js/ui-mode.js?v=20260809"></script>
 </head>
 <body data-page="apply">
 <header class="topbar" style="position:static">
   <span class="auth-logo" style="margin:0"><i class="fa-solid fa-briefcase"></i><span>TalentFlow</span></span>
   <div class="topbar-actions">
+      <button type="button" class="btn btn-icon btn-outline mode-toggle" data-mode-toggle aria-label="Mode sombre" title="Mode sombre"><i class="fa-solid fa-moon"></i><i class="fa-solid fa-sun"></i></button>
     <button type="button" id="btn-logout" class="btn btn-outline btn-sm d-none" data-i18n="nav.logout">Déconnexion</button>
     <select id="lang-switch" class="lang-switch" aria-label="Langue"></select>
   </div>

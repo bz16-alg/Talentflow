@@ -6,9 +6,10 @@
 <title>TalentFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='57' fill='%230a1122'/%3E%3Ccircle cx='60' cy='60' r='57' fill='none' stroke='%234ECCEC' stroke-opacity='.45' stroke-width='2'/%3E%3Ccircle cx='47' cy='43' r='14' fill='%234ECCEC'/%3E%3Cpath d='M27 86 C29 66, 38 60, 47 60 L68 60 C78 60, 86 72, 88 86 Z' fill='%23e6edf7'/%3E%3Ccircle cx='92' cy='26' r='4' fill='%2323E294'/%3E%3Ccircle cx='85' cy='40' r='3.5' fill='%234ECCEC'/%3E%3Ccircle cx='80' cy='16' r='3' fill='%234ECCEC'/%3E%3Ccircle cx='95' cy='44' r='2.6' fill='%2323E294'/%3E%3Ccircle cx='74' cy='52' r='2.4' fill='%2323E294'/%3E%3Ccircle cx='89' cy='58' r='2.2' fill='%234ECCEC'/%3E%3C/svg%3E">
 <style>
 .splash-spinner {
   width: 36px;
@@ -36,13 +37,14 @@
   color: rgba(255, 255, 255, .7);
 }
 </style>
+<script src="js/ui-mode.js?v=20260809"></script>
 </head>
 <body data-page="splash">
 
 <div class="splash-screen">
   <select class="lang-switch" id="splash-lang" data-lang-switch></select>
 
-  <div class="splash-logo"><i class="fa-solid fa-user-tie"></i></div>
+  <div class="splash-logo"><span class="logo-slot" data-logo-slot data-animated="true"></span></div>
   <h1 class="splash-name">TalentFlow</h1>
   <p class="splash-tagline" data-i18n="splash.subtitle"></p>
 
@@ -64,8 +66,10 @@
 <script src="js/ai.js"></script>
 <script src="js/widgets.js"></script>
 <script src="js/script.js"></script>
+<script src="js/animations.js"></script>
 <script>
 window.pageInit = async function () {
+  if (window.TFAnim) TFAnim.play('splash');
   var langSelect = document.getElementById('splash-lang');
   if (langSelect) langSelect.setAttribute('aria-label', typeof t === 'function' ? t('lang.label') : 'Langue');
 
@@ -100,5 +104,6 @@ window.pageInit = async function () {
   }, 900);
 };
 </script>
+<script src="js/theme.js?v=20260809"></script>
 </body>
 </html>
