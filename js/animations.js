@@ -288,51 +288,90 @@
     return 'dash';
   }
 
-  /* ---------- SÃ©lecteur de variante (UI) ---------- */
-  function mountSwitcher() {
-    if (document.getElementById('tfAnimSwitcher')) return;
+  /* ---------- Sélecteur de variante (UI) : baguette magique + menu déroulant ---------- */
+  var WAND_ITEMS = [
+    { v: 'a', name: 'Minimal Reveal', desc: 'Discret, sobre, efficace' },
+    { v: 'b', name: 'Brand Flow', desc: 'Le flux de talents en mouvement' },
+    { v: 'c', name: 'Premium Flow', desc: 'Effet premium maîtrisé' }
+  ];
+
+  function mountWand() {
+    if (document.getElementById('tfAnimWand')) return;
     var wrap = document.createElement('div');
-    wrap.className = 'tf-anim-switcher';
-    wrap.id = 'tfAnimSwitcher';
-    wrap.setAttribute('role', 'group');
-    wrap.setAttribute('aria-label', 'Variante d\'animation');
+    wrap.className = 'tf-anim-wand';
+    wrap.id = 'tfAnimWand';
 
-    var label = document.createElement('span');
-    label.className = 'tf-anim-label';
-    label.textContent = 'Anim';
-    wrap.appendChild(label);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tf-anim-wand-btn';
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i>';
+    btn.title = 'Variantes d\'animation';
+    btn.setAttribute('aria-label', 'Variantes d\'animation');
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
 
-    var names = { a: 'A Â· Minimal', b: 'B Â· Brand Flow', c: 'C Â· Premium' };
-    ['a', 'b', 'c'].forEach(function (v) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.tfAnim = v;
-      b.textContent = v.toUpperCase();
-      b.title = names[v];
-      b.setAttribute('aria-label', names[v]);
-      b.addEventListener('click', function () {
-        variant = v;
+    var menu = document.createElement('div');
+    menu.className = 'tf-anim-menu';
+    menu.id = 'tfAnimMenu';
+    menu.setAttribute('role', 'menu');
+
+    function toggleMenu(open) {
+      menu.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    }
+
+    function syncItems() {
+      menu.querySelectorAll('.tf-anim-item[data-tf-anim]').forEach(function (x) {
+        x.classList.toggle('active', x.dataset.tfAnim === variant);
+      });
+    }
+
+    WAND_ITEMS.forEach(function (it) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'tf-anim-item';
+      item.dataset.tfAnim = it.v;
+      item.setAttribute('role', 'menuitem');
+      item.innerHTML = '<span class="tf-anim-item-check"><i class="fa-solid fa-check"></i></span>' +
+        '<span class="tf-anim-item-txt"><strong>' + it.name + '</strong><small>' + it.desc + '</small></span>';
+      item.addEventListener('click', function () {
+        variant = it.v;
         localStorage.setItem(KEY, variant);
-        Array.prototype.slice.call(wrap.querySelectorAll('[data-tf-anim]')).forEach(function (x) { x.classList.toggle('active', x.dataset.tfAnim === variant); });
+        syncItems();
+        toggleMenu(false);
         play(sceneFromBody());
       });
-      wrap.appendChild(b);
+      menu.appendChild(item);
     });
 
     var replay = document.createElement('button');
     replay.type = 'button';
-    replay.className = 'tf-anim-replay';
-    replay.title = 'Rejouer';
-    replay.setAttribute('aria-label', 'Rejouer l\'animation');
-    replay.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
-    replay.addEventListener('click', function () { play(sceneFromBody()); });
-    wrap.appendChild(replay);
+    replay.className = 'tf-anim-item tf-anim-item-replay';
+    replay.id = 'tfAnimReplay';
+    replay.setAttribute('role', 'menuitem');
+    replay.innerHTML = '<span class="tf-anim-item-check"></span>' +
+      '<span class="tf-anim-item-txt"><strong><i class="fa-solid fa-rotate-right"></i> Rejouer l\'animation</strong></span>';
+    replay.addEventListener('click', function () { toggleMenu(false); play(sceneFromBody()); });
+    menu.appendChild(replay);
 
-    Array.prototype.slice.call(wrap.querySelectorAll('[data-tf-anim]')).forEach(function (x) { x.classList.toggle('active', x.dataset.tfAnim === variant); });
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      toggleMenu(!menu.classList.contains('open'));
+    });
+    document.addEventListener('click', function (e) {
+      if (!(e.target.closest && e.target.closest('.tf-anim-wand'))) toggleMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') toggleMenu(false);
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+    syncItems();
     document.body.appendChild(wrap);
   }
 
-  document.addEventListener('DOMContentLoaded', mountSwitcher);
+  document.addEventListener('DOMContentLoaded', mountWand);
 
   window.TFAnim = {
     play: play,
