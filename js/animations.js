@@ -344,15 +344,6 @@
       menu.appendChild(item);
     });
 
-    var replay = document.createElement('button');
-    replay.type = 'button';
-    replay.className = 'tf-anim-item tf-anim-item-replay';
-    replay.id = 'tfAnimReplay';
-    replay.setAttribute('role', 'menuitem');
-    replay.innerHTML = '<span class="tf-anim-item-check"></span>' +
-      '<span class="tf-anim-item-txt"><strong><i class="fa-solid fa-rotate-right"></i> Rejouer l\'animation</strong></span>';
-    replay.addEventListener('click', function () { toggleMenu(false); play(sceneFromBody()); });
-    menu.appendChild(replay);
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -387,4 +378,5 @@
     }
   };
 })();
+
 
